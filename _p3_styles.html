@@ -1,0 +1,904 @@
+<style>
+/* ============================================================
+   56 DESIGN LANGUAGES
+   Token blocks use a bare [data-style] selector so the contact
+   sheet thumbnails inherit them too. Signature rules are scoped
+   to .kit[data-style] so they only fire on the full stage.
+   ============================================================ */
+
+/* ═══════════ FAMILY 1 · SYSTEM ═══════════ */
+
+[data-style="swiss"]{
+  --bg:#FFF; --bg-2:#F4F4F4; --surface:#FFF; --surface-2:#F0F0F0; --surface-3:#DEDEDE;
+  --ink:#000; --ink-2:#3D3D3D; --ink-3:#8A8A8A;
+  --accent:#E4002B; --on-accent:#FFF; --accent-2:#B80022; --accent-soft:#FFE5EA;
+  --bw:1px; --bc:#000; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:none;
+  --f-d:"Inter",Helvetica,Arial,sans-serif; --f-b:"Inter",Helvetica,Arial,sans-serif;
+  --h-w:700; --h-ls:-.035em; --lab-ls:.1em; --btn-r:0px; --btn-sh:none; --in-r:0px;
+}
+.kit[data-style="swiss"] .k-gtitle::after{background:#000;height:2px}
+
+[data-style="bauhaus"]{
+  --bg:#F2EFE6; --bg-2:#E8E4D8; --surface:#FFF; --surface-2:#EDE9DD; --surface-3:#DCD6C6;
+  --ink:#111; --ink-2:#3A3A3A; --ink-3:#7A756B;
+  --accent:#D62828; --on-accent:#FFF; --accent-2:#1D3FBF; --accent-soft:#F7D9D9;
+  --warn:#F4B400; --warn-soft:#FCEFC6; --info:#1D3FBF; --info-soft:#D9E0F7;
+  --bw:2px; --bc:#111; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:999px;
+  --sh:none; --sh-lg:none;
+  --f-d:"Outfit",sans-serif; --f-b:"Outfit",sans-serif;
+  --h-w:800; --h-ls:-.02em; --btn-r:0px; --btn-sh:none; --btn-bw:2px; --in-r:0px;
+}
+.kit[data-style="bauhaus"] .k-av,.kit[data-style="bauhaus"] .k-logo span{border-radius:999px}
+.kit[data-style="bauhaus"] .k-feat i{border-radius:999px;background:#1D3FBF;color:#FFF}
+
+[data-style="material"]{
+  --bg:#FEF7FF; --bg-2:#F7F2FA; --surface:#FFF; --surface-2:#F3EDF7; --surface-3:#E7E0EC;
+  --ink:#1D1B20; --ink-2:#49454F; --ink-3:#79747E;
+  --accent:#6750A4; --on-accent:#FFF; --accent-2:#4F378B; --accent-soft:#EADDFF;
+  --ok:#146C2E; --err:#B3261E; --err-soft:#F9DEDC; --ok-soft:#D8F2DE;
+  --bw:1px; --bc:#CAC4D0; --r:16px; --r-sm:8px; --r-lg:28px; --r-pill:999px;
+  --sh:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.06);
+  --sh-lg:0 4px 8px 3px rgba(0,0,0,.1),0 1px 3px rgba(0,0,0,.12);
+  --f-d:"Inter",Roboto,sans-serif; --f-b:"Inter",Roboto,sans-serif;
+  --h-w:500; --h-ls:0; --btn-r:999px; --btn-w:500; --btn-pad:11px 24px; --btn-sh:none;
+  --in-r:6px; --in-bg:#F3EDF7; --lab-ls:.03em; --lab-tt:none;
+}
+.kit[data-style="material"] .k-in{border-width:0 0 1px 0;border-radius:6px 6px 0 0}
+
+[data-style="fluent"]{
+  --bg:#F5F5F7; --bg-2:#EDEDF0; --surface:rgba(255,255,255,.72); --surface-2:#F0F0F4; --surface-3:#E1E1E6;
+  --ink:#1B1B1F; --ink-2:#484650; --ink-3:#7A7880;
+  --accent:#0F6CBD; --on-accent:#FFF; --accent-2:#0A5497; --accent-soft:#DCEAF7;
+  --bw:1px; --bc:rgba(0,0,0,.09); --r:7px; --r-sm:4px; --r-lg:10px;
+  --sh:0 1px 2px rgba(0,0,0,.09); --sh-lg:0 8px 16px rgba(0,0,0,.14);
+  --f-d:"Inter","Segoe UI",sans-serif; --f-b:"Inter","Segoe UI",sans-serif;
+  --h-w:600; --h-ls:-.01em; --btn-r:5px; --btn-w:600; --blur:30px;
+  --grad:linear-gradient(140deg,rgba(15,108,189,.07),rgba(120,90,200,.05) 60%,transparent);
+  --in-bg:rgba(255,255,255,.8); --in-r:5px; --lab-tt:none; --lab-ls:.01em;
+}
+
+[data-style="cupertino"]{
+  --bg:#F2F2F7; --bg-2:#E9E9EE; --surface:#FFF; --surface-2:#F7F7FA; --surface-3:#E5E5EA;
+  --ink:#000; --ink-2:#3C3C43; --ink-3:#8E8E93;
+  --accent:#007AFF; --on-accent:#FFF; --accent-2:#0062CC; --accent-soft:#E1EFFF;
+  --ok:#34C759; --warn:#FF9500; --err:#FF3B30;
+  --ok-soft:#DFF6E4; --warn-soft:#FFEFD6; --err-soft:#FFE3E1;
+  --bw:1px; --bc:#D1D1D6; --r:12px; --r-sm:8px; --r-lg:18px; --r-pill:999px;
+  --sh:0 1px 3px rgba(0,0,0,.06); --sh-lg:0 12px 34px rgba(0,0,0,.16);
+  --f-d:"Inter",-apple-system,sans-serif; --f-b:"Inter",-apple-system,sans-serif;
+  --h-w:700; --h-ls:-.03em; --btn-r:11px; --btn-w:600; --btn-sh:none; --btn-pad:11px 20px;
+  --in-bg:#FFF; --in-r:10px; --lab-tt:uppercase; --lab-ls:.05em; --blur:20px;
+}
+
+[data-style="flat"]{
+  --bg:#ECF0F1; --bg-2:#E2E7E9; --surface:#FFF; --surface-2:#F4F7F8; --surface-3:#DDE4E6;
+  --ink:#2C3E50; --ink-2:#5D6D7E; --ink-3:#95A5A6;
+  --accent:#1ABC9C; --on-accent:#FFF; --accent-2:#16A085; --accent-soft:#D6F5EE;
+  --ok:#2ECC71; --warn:#F39C12; --err:#E74C3C; --info:#3498DB;
+  --ok-soft:#D9F7E4; --warn-soft:#FDF0D5; --err-soft:#FBDEDB; --info-soft:#DAEDF9;
+  --bw:0px; --bc:transparent; --r:4px; --r-sm:3px; --r-lg:6px;
+  --sh:none; --sh-lg:0 6px 18px rgba(44,62,80,.14);
+  --f-d:"Poppins",sans-serif; --f-b:"Poppins",sans-serif;
+  --h-w:600; --h-ls:-.01em; --btn-r:4px; --btn-sh:none; --in-bg:#F4F7F8; --in-bc:#DDE4E6; --in-r:4px;
+}
+
+[data-style="zen"]{
+  --bg:#FCFCFB; --bg-2:#F7F7F5; --surface:#FFF; --surface-2:#FAFAF8; --surface-3:#EFEFEC;
+  --ink:#1A1A18; --ink-2:#75756E; --ink-3:#A8A8A0;
+  --accent:#1A1A18; --on-accent:#FCFCFB; --accent-2:#000; --accent-soft:#F0F0EC;
+  --bw:1px; --bc:#EAEAE5; --r:2px; --r-sm:2px; --r-lg:2px; --r-pill:999px;
+  --sh:none; --sh-lg:0 20px 60px -30px rgba(0,0,0,.12);
+  --f-d:"Outfit",sans-serif; --f-b:"Outfit",sans-serif;
+  --h-w:300; --h-ls:-.01em; --b-lh:1.85; --pad:32px; --gap:26px;
+  --btn-r:2px; --btn-w:400; --btn-sh:none; --btn-pad:12px 26px; --btn-ls:.06em;
+  --in-r:2px; --lab-ls:.16em; --lab-w:400;
+}
+
+[data-style="monochrome"]{
+  --bg:#FFF; --bg-2:#F5F5F5; --surface:#FFF; --surface-2:#F0F0F0; --surface-3:#D8D8D8;
+  --ink:#000; --ink-2:#555; --ink-3:#999;
+  --accent:#000; --on-accent:#FFF; --accent-2:#000; --accent-soft:#EBEBEB;
+  --ok:#000; --warn:#666; --err:#000; --info:#333;
+  --ok-soft:#EBEBEB; --warn-soft:#E4E4E4; --err-soft:#DDD; --info-soft:#EEE;
+  --bw:1px; --bc:#000; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:999px;
+  --sh:none; --sh-lg:none;
+  --f-d:"Space Grotesk",sans-serif; --f-b:"Space Grotesk",sans-serif;
+  --h-w:700; --h-ls:-.03em; --btn-r:0px; --btn-sh:none; --in-r:0px;
+}
+
+/* ═══════════ FAMILY 2 · RAW ═══════════ */
+
+[data-style="brutalism"]{
+  --bg:#FFF; --bg-2:#FFF; --surface:#FFF; --surface-2:#F2F2F2; --surface-3:#E0E0E0;
+  --ink:#000; --ink-2:#111; --ink-3:#555;
+  --accent:#0000EE; --on-accent:#FFF; --accent-2:#551A8B; --accent-soft:#E6E6FF;
+  --bw:2px; --bc:#000; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:none;
+  --f-d:"Libre Baskerville",Times,serif; --f-b:"Libre Baskerville",Times,serif;
+  --h-w:700; --h-ls:0; --b-lh:1.5;
+  --btn-r:0px; --btn-sh:none; --btn-bw:2px; --btn-w:400; --btn-pad:8px 14px;
+  --in-r:0px; --lab-tt:none; --lab-ls:0;
+}
+.kit[data-style="brutalism"] a{text-decoration:underline}
+.kit[data-style="brutalism"] .k-btn{background:#FFF;color:#0000EE;text-decoration:underline}
+.kit[data-style="brutalism"] .k-btn.sec,.kit[data-style="brutalism"] .k-btn.danger{background:#FFF;color:#000}
+
+[data-style="neubrutal"]{
+  --bg:#FFF8E1; --bg-2:#FFF2C9; --surface:#FFF; --surface-2:#FFF3D0; --surface-3:#FFE59B;
+  --ink:#0A0A0A; --ink-2:#2A2A2A; --ink-3:#6B6B6B;
+  --accent:#FFD426; --on-accent:#0A0A0A; --accent-2:#0A0A0A; --accent-soft:#FFF0AF;
+  --ok:#4ADE80; --warn:#FB923C; --err:#F87171; --info:#60A5FA;
+  --ok-soft:#D6FBE4; --warn-soft:#FFE8D2; --err-soft:#FFDEDE; --info-soft:#DCEBFF;
+  --bw:3px; --bc:#0A0A0A; --r:6px; --r-sm:4px; --r-lg:10px; --r-pill:999px;
+  --sh:4px 4px 0 #0A0A0A; --sh-lg:8px 8px 0 #0A0A0A;
+  --f-d:"Archivo Black",sans-serif; --f-b:"Space Grotesk",sans-serif;
+  --h-w:400; --h-ls:-.02em; --btn-r:6px; --btn-bw:3px; --btn-sh:4px 4px 0 #0A0A0A; --btn-w:700;
+  --in-bg:#FFF; --in-r:6px; --in-sh:3px 3px 0 #0A0A0A; --lab-ls:.06em;
+}
+.kit[data-style="neubrutal"] .k-btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #0A0A0A}
+.kit[data-style="neubrutal"] .k-badge{border-color:#0A0A0A;border-width:2px}
+
+[data-style="antidesign"]{
+  --bg:#C9F73F; --bg-2:#B6E82B; --surface:#FF6EC7; --surface-2:#FFE600; --surface-3:#00E5FF;
+  --ink:#1B00BF; --ink-2:#8B0000; --ink-3:#4A0072;
+  --accent:#FF2E93; --on-accent:#C9F73F; --accent-2:#1B00BF; --accent-soft:#FFE600;
+  --ok:#00FF7F; --warn:#FF8C00; --err:#FF0000; --info:#00E5FF;
+  --ok-soft:#DBFFEC; --warn-soft:#FFE9CC; --err-soft:#FFD6D6; --info-soft:#D2FBFF;
+  --bw:4px; --bc:#1B00BF; --r:0px; --r-sm:22px; --r-lg:2px; --r-pill:4px;
+  --sh:7px -5px 0 #FFE600; --sh-lg:-10px 10px 0 #00E5FF;
+  --f-d:"Bungee",cursive; --f-b:"Special Elite",cursive;
+  --h-w:400; --h-ls:.06em; --b-lh:1.9;
+  --btn-r:22px 3px 22px 3px; --btn-sh:5px 5px 0 #1B00BF; --btn-bw:4px; --btn-tt:uppercase; --btn-ls:.14em;
+  --in-bg:#FFE600; --in-r:0 18px 0 18px; --lab-ls:.2em;
+}
+.kit[data-style="antidesign"] .k-card:nth-child(even){transform:rotate(-1.4deg)}
+.kit[data-style="antidesign"] .k-btn:nth-child(3n){transform:rotate(2.5deg)}
+
+[data-style="swisspunk"]{
+  --bg:#E9E9E4; --bg-2:#DEDED8; --surface:#F6F6F2; --surface-2:#E2E2DC; --surface-3:#CFCFC8;
+  --ink:#0B0B0B; --ink-2:#3A3A38; --ink-3:#84847C;
+  --accent:#FF3B00; --on-accent:#F6F6F2; --accent-2:#0B0B0B; --accent-soft:#FFE0D6;
+  --bw:1px; --bc:#0B0B0B; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:none;
+  --f-d:"Syne",sans-serif; --f-b:"Space Grotesk",sans-serif;
+  --h-w:800; --h-ls:-.05em; --h-tt:uppercase;
+  --btn-r:0px; --btn-sh:none; --btn-tt:uppercase; --btn-ls:.2em; --btn-w:700;
+  --in-r:0px; --lab-ls:.3em;
+}
+.kit[data-style="swisspunk"] .k-gtitle{transform:skewX(-11deg)}
+.kit[data-style="swisspunk"] .k-stat .vl{transform:skewX(-7deg)}
+
+[data-style="wireframe"]{
+  --bg:#FBFBFB; --bg-2:#F2F2F2; --surface:#FFF; --surface-2:#F0F0F0; --surface-3:#DCDCDC;
+  --ink:#4A4A4A; --ink-2:#767676; --ink-3:#A6A6A6;
+  --accent:#9B9B9B; --on-accent:#FFF; --accent-2:#6E6E6E; --accent-soft:#EDEDED;
+  --ok:#8E8E8E; --warn:#8E8E8E; --err:#8E8E8E; --info:#8E8E8E;
+  --ok-soft:#EDEDED; --warn-soft:#EDEDED; --err-soft:#EDEDED; --info-soft:#EDEDED;
+  --bw:1.5px; --bc:#B4B4B4; --bstyle:dashed; --r:3px; --r-sm:2px; --r-lg:4px; --r-pill:999px;
+  --sh:none; --sh-lg:none;
+  --f-d:"IBM Plex Mono",monospace; --f-b:"IBM Plex Mono",monospace;
+  --h-w:500; --h-ls:0; --btn-r:3px; --btn-sh:none; --btn-bw:1.5px; --btn-w:400;
+  --in-r:3px; --lab-ls:.1em;
+}
+.kit[data-style="wireframe"] .k-gal i,.kit[data-style="wireframe"] .k-player .art,
+.kit[data-style="wireframe"] .k-av{background:repeating-linear-gradient(45deg,#E4E4E4 0 6px,#F4F4F4 6px 12px);color:#7A7A7A}
+
+[data-style="databrutal"]{
+  --bg:#FBFBF8; --bg-2:#F1F1EC; --surface:#FFF; --surface-2:#F4F4EF; --surface-3:#E4E4DC;
+  --ink:#000; --ink-2:#33332E; --ink-3:#77776E;
+  --accent:#0033CC; --on-accent:#FFF; --accent-2:#001F7A; --accent-soft:#DDE4FA;
+  --ok:#006B2D; --warn:#8A5A00; --err:#B00020;
+  --bw:1px; --bc:#000; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:none;
+  --f-d:"IBM Plex Mono",monospace; --f-b:"IBM Plex Mono",monospace;
+  --h-w:600; --h-ls:-.04em; --h-tt:uppercase; --b-size:12.5px; --b-lh:1.45;
+  --btn-r:0px; --btn-sh:none; --btn-pad:6px 12px; --btn-tt:uppercase; --btn-ls:.08em;
+  --in-r:0px; --pad:14px; --gap:10px; --lab-ls:.14em;
+}
+
+[data-style="maximal"]{
+  --bg:#140021; --bg-2:#22003A; --surface:rgba(255,255,255,.1); --surface-2:rgba(255,255,255,.16); --surface-3:rgba(255,255,255,.24);
+  --ink:#FFF6FF; --ink-2:#F0C8FF; --ink-3:#B98CD8;
+  --accent:#FF006E; --on-accent:#FFF; --accent-2:#FFBE0B; --accent-soft:rgba(255,0,110,.24);
+  --ok:#3BF4A0; --warn:#FFBE0B; --err:#FF4D6D; --info:#4CC9F0;
+  --ok-soft:rgba(59,244,160,.2); --warn-soft:rgba(255,190,11,.22); --err-soft:rgba(255,77,109,.22); --info-soft:rgba(76,201,240,.22);
+  --bw:2px; --bc:rgba(255,255,255,.32); --r:20px; --r-sm:11px; --r-lg:30px; --r-pill:999px;
+  --sh:0 0 22px rgba(255,0,110,.5); --sh-lg:0 0 60px rgba(76,201,240,.6);
+  --grad:radial-gradient(900px 420px at 8% 0%,rgba(255,0,110,.5),transparent 60%),radial-gradient(700px 400px at 92% 30%,rgba(76,201,240,.45),transparent 62%),radial-gradient(760px 460px at 50% 105%,rgba(255,190,11,.4),transparent 60%);
+  --f-d:"Bungee",cursive; --f-b:"Outfit",sans-serif;
+  --h-w:400; --h-ls:.01em; --blur:10px;
+  --btn-r:999px; --btn-sh:0 0 22px rgba(255,0,110,.7); --btn-tt:uppercase; --btn-ls:.1em;
+  --in-bg:rgba(255,255,255,.12); --in-bc:rgba(255,255,255,.34); --in-r:999px; --lab-ls:.18em;
+}
+
+[data-style="monospace"]{
+  --bg:#FAF9F5; --bg-2:#F2F0E9; --surface:#FFF; --surface-2:#F5F3EC; --surface-3:#E6E2D6;
+  --ink:#20201C; --ink-2:#55534A; --ink-3:#8E8B7E;
+  --accent:#B45309; --on-accent:#FFF; --accent-2:#8A3F06; --accent-soft:#F7E7D4;
+  --bw:1px; --bc:#DED9CB; --r:3px; --r-sm:2px; --r-lg:4px; --r-pill:3px;
+  --sh:none; --sh-lg:0 8px 22px -14px rgba(0,0,0,.35);
+  --f-d:"IBM Plex Mono",monospace; --f-b:"IBM Plex Mono",monospace;
+  --h-w:600; --h-ls:-.03em; --b-lh:1.7; --b-size:13px;
+  --btn-r:3px; --btn-sh:none; --btn-w:500; --in-r:3px; --lab-ls:.12em;
+}
+
+/* ═══════════ FAMILY 3 · DEPTH ═══════════ */
+
+[data-style="skeuo"]{
+  --bg:#CFC9BA; --bg-2:#C2BBAA; --surface:#EFECE3; --surface-2:#E2DED2; --surface-3:#CFC9BA;
+  --ink:#2E2A22; --ink-2:#57503F; --ink-3:#8A8271;
+  --accent:#4A7CB8; --on-accent:#FFF; --accent-2:#2F5A8E; --accent-soft:#DCE6F2;
+  --bw:1px; --bc:#A79E8A; --r:9px; --r-sm:6px; --r-lg:13px; --r-pill:999px;
+  --sh:0 1px 0 rgba(255,255,255,.85) inset,0 2px 4px rgba(0,0,0,.28);
+  --sh-lg:0 1px 0 rgba(255,255,255,.9) inset,0 10px 24px rgba(0,0,0,.4);
+  --tex:repeating-linear-gradient(45deg,rgba(255,255,255,.055) 0 2px,transparent 2px 4px);
+  --f-d:"Inter",sans-serif; --f-b:"Inter",sans-serif;
+  --h-w:700; --h-ls:-.015em;
+  --btn-r:8px; --btn-sh:0 1px 0 rgba(255,255,255,.6) inset,0 2px 4px rgba(0,0,0,.34); --btn-bw:1px;
+  --in-bg:#F7F5EF; --in-r:7px; --in-sh:inset 0 2px 4px rgba(0,0,0,.22);
+}
+.kit[data-style="skeuo"] .k-card,.kit[data-style="skeuo"] .k-nav,.kit[data-style="skeuo"] .k-stat{
+  background-image:linear-gradient(#FDFCF8,#E3DFD3)}
+.kit[data-style="skeuo"] .k-btn{background-image:linear-gradient(rgba(255,255,255,.42),rgba(0,0,0,.14))}
+.kit[data-style="skeuo"] h1,.kit[data-style="skeuo"] h2{text-shadow:0 1px 0 rgba(255,255,255,.75)}
+
+[data-style="neumorph"]{
+  --bg:#E4E9F0; --bg-2:#E0E5EC; --surface:#E4E9F0; --surface-2:#E4E9F0; --surface-3:#D5DAE2;
+  --ink:#2F3A46; --ink-2:#5C6672; --ink-3:#939CA8;
+  --accent:#5B7CFA; --on-accent:#FFF; --accent-2:#3A5CD8; --accent-soft:#DCE2F6;
+  --bw:0px; --bc:transparent; --r:18px; --r-sm:11px; --r-lg:26px; --r-pill:999px;
+  --sh:7px 7px 14px #C3C9D2,-7px -7px 14px #FFF;
+  --sh-lg:12px 12px 26px #BFC5CE,-12px -12px 26px #FFF;
+  --f-d:"Poppins",sans-serif; --f-b:"Poppins",sans-serif;
+  --h-w:600; --h-ls:-.02em;
+  --btn-r:14px; --btn-sh:6px 6px 12px #C3C9D2,-6px -6px 12px #FFF; --btn-w:600;
+  --in-bg:#E4E9F0; --in-r:14px; --in-sh:inset 5px 5px 10px #C3C9D2,inset -5px -5px 10px #FFF;
+  --lab-ls:.1em;
+}
+.kit[data-style="neumorph"] .k-btn:active{box-shadow:inset 5px 5px 10px #C3C9D2,inset -5px -5px 10px #FFF}
+.kit[data-style="neumorph"] .k-table th,.kit[data-style="neumorph"] .k-table td{border-color:#D5DAE2}
+
+[data-style="glass"]{
+  --bg:#B9C6F5; --bg-2:#C9D2F8;
+  --surface:rgba(255,255,255,.5); --surface-2:rgba(255,255,255,.34); --surface-3:rgba(255,255,255,.22);
+  --ink:#141833; --ink-2:#3D4468; --ink-3:#6C7398;
+  --accent:#5B4BE0; --on-accent:#FFF; --accent-2:#3A2CC0; --accent-soft:rgba(91,75,224,.2);
+  --bw:1px; --bc:rgba(255,255,255,.66); --r:18px; --r-sm:12px; --r-lg:26px; --r-pill:999px;
+  --sh:0 8px 30px rgba(31,38,135,.16); --sh-lg:0 18px 50px rgba(31,38,135,.3);
+  --grad:radial-gradient(680px 420px at 12% 8%,rgba(255,120,190,.72),transparent 62%),radial-gradient(620px 400px at 88% 22%,rgba(96,220,255,.72),transparent 60%),radial-gradient(700px 480px at 55% 100%,rgba(255,214,120,.62),transparent 62%);
+  --blur:20px;
+  --f-d:"Outfit",sans-serif; --f-b:"Outfit",sans-serif;
+  --h-w:600; --h-ls:-.02em;
+  --btn-r:14px; --btn-sh:0 6px 18px rgba(91,75,224,.4);
+  --in-bg:rgba(255,255,255,.45); --in-bc:rgba(255,255,255,.72); --in-r:12px;
+}
+
+[data-style="clay"]{
+  --bg:#EEF0FE; --bg-2:#E4E7FD; --surface:#FFF; --surface-2:#F3F4FF; --surface-3:#DFE3FB;
+  --ink:#241A4D; --ink-2:#5B527F; --ink-3:#948CB5;
+  --accent:#7B61FF; --on-accent:#FFF; --accent-2:#5A3FE0; --accent-soft:#E8E3FF;
+  --ok:#38D6A0; --warn:#FFB648; --err:#FF6B8A;
+  --ok-soft:#DDF9EF; --warn-soft:#FFF0D9; --err-soft:#FFE2E8;
+  --bw:0px; --bc:transparent; --r:28px; --r-sm:18px; --r-lg:38px; --r-pill:999px;
+  --sh:10px 12px 24px rgba(115,100,200,.24),inset -5px -6px 12px rgba(150,140,230,.22),inset 5px 6px 12px rgba(255,255,255,.9);
+  --sh-lg:16px 20px 42px rgba(115,100,200,.32),inset -6px -8px 16px rgba(150,140,230,.24),inset 6px 8px 16px rgba(255,255,255,.95);
+  --f-d:"Rubik",sans-serif; --f-b:"Rubik",sans-serif;
+  --h-w:600; --h-ls:-.02em;
+  --btn-r:22px; --btn-pad:13px 24px; --btn-w:600;
+  --btn-sh:8px 10px 20px rgba(123,97,255,.4),inset -4px -5px 10px rgba(90,63,224,.4),inset 4px 5px 10px rgba(255,255,255,.5);
+  --in-bg:#F3F4FF; --in-r:20px; --in-sh:inset 5px 6px 12px rgba(150,140,230,.26),inset -4px -4px 10px rgba(255,255,255,.9);
+  --lab-tt:none; --lab-ls:.02em;
+}
+
+[data-style="aurora"]{
+  --bg:#F7F8FC; --bg-2:#EEF1F9;
+  --surface:rgba(255,255,255,.72); --surface-2:rgba(255,255,255,.5); --surface-3:rgba(180,190,230,.28);
+  --ink:#151A2E; --ink-2:#4A5270; --ink-3:#8189A6;
+  --accent:#7A5AF8; --on-accent:#FFF; --accent-2:#5A3AE0; --accent-soft:rgba(122,90,248,.15);
+  --bw:1px; --bc:rgba(255,255,255,.8); --r:20px; --r-sm:13px; --r-lg:30px; --r-pill:999px;
+  --sh:0 4px 24px rgba(90,70,180,.09); --sh-lg:0 20px 60px rgba(90,70,180,.16);
+  --grad:radial-gradient(760px 460px at 5% 0%,rgba(168,140,255,.5),transparent 60%),radial-gradient(700px 420px at 95% 12%,rgba(120,230,220,.48),transparent 58%),radial-gradient(820px 520px at 45% 108%,rgba(255,170,210,.44),transparent 60%);
+  --blur:14px;
+  --f-d:"DM Sans",sans-serif; --f-b:"DM Sans",sans-serif;
+  --h-w:700; --h-ls:-.03em;
+  --btn-r:16px; --btn-sh:0 6px 20px rgba(122,90,248,.32);
+  --in-bg:rgba(255,255,255,.7); --in-bc:rgba(255,255,255,.9); --in-r:14px; --lab-tt:none; --lab-ls:.02em;
+}
+
+[data-style="emboss"]{
+  --bg:#E6E2D9; --bg-2:#DEDACF; --surface:#EBE7DE; --surface-2:#E2DED4; --surface-3:#D2CDC0;
+  --ink:#3A362C; --ink-2:#635E50; --ink-3:#938D7C;
+  --accent:#7A6A4F; --on-accent:#F5F2EA; --accent-2:#584B36; --accent-soft:#DBD3C0;
+  --bw:1px; --bc:#CFC9BB; --r:6px; --r-sm:4px; --r-lg:9px; --r-pill:999px;
+  --sh:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(0,0,0,.09),0 1px 2px rgba(0,0,0,.07);
+  --sh-lg:inset 0 1px 0 rgba(255,255,255,.9),0 8px 20px rgba(0,0,0,.13);
+  --f-d:"Libre Baskerville",serif; --f-b:"DM Sans",sans-serif;
+  --h-w:700; --h-ls:-.01em;
+  --btn-r:6px; --btn-sh:inset 0 1px 0 rgba(255,255,255,.35),0 1px 2px rgba(0,0,0,.22); --btn-bw:1px;
+  --in-bg:#E2DED4; --in-r:5px; --in-sh:inset 0 2px 3px rgba(0,0,0,.13),0 1px 0 rgba(255,255,255,.8);
+}
+.kit[data-style="emboss"] h1,.kit[data-style="emboss"] h2,.kit[data-style="emboss"] h3,
+.kit[data-style="emboss"] .k-stat .vl{text-shadow:0 1px 0 rgba(255,255,255,.9),0 -1px 0 rgba(0,0,0,.14)}
+
+[data-style="chrome"]{
+  --bg:#B7BCC4; --bg-2:#A8AEB7; --surface:#E9ECEF; --surface-2:#D4D9DF; --surface-3:#BAC0C8;
+  --ink:#15181C; --ink-2:#3C424A; --ink-3:#6E757E;
+  --accent:#5A6472; --on-accent:#F2F4F7; --accent-2:#333A44; --accent-soft:#CDD3DA;
+  --bw:1px; --bc:#8B929C; --r:5px; --r-sm:3px; --r-lg:8px; --r-pill:999px;
+  --sh:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(0,0,0,.22),0 2px 4px rgba(0,0,0,.28);
+  --sh-lg:inset 0 1px 0 rgba(255,255,255,.95),0 12px 28px rgba(0,0,0,.42);
+  --f-d:"Orbitron",sans-serif; --f-b:"Inter",sans-serif;
+  --h-w:700; --h-ls:.02em; --h-tt:uppercase;
+  --btn-r:5px; --btn-bw:1px;
+  --btn-sh:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -2px 3px rgba(0,0,0,.25),0 2px 3px rgba(0,0,0,.3);
+  --in-bg:#DDE1E6; --in-r:4px; --in-sh:inset 0 2px 4px rgba(0,0,0,.3); --lab-ls:.14em;
+}
+.kit[data-style="chrome"] .k-card,.kit[data-style="chrome"] .k-nav,.kit[data-style="chrome"] .k-btn,
+.kit[data-style="chrome"] .k-stat{background-image:linear-gradient(#FCFDFE 0%,#E3E7EB 48%,#C6CCD3 52%,#DFE3E8 100%)}
+.kit[data-style="chrome"] .k-btn{color:#15181C}
+
+[data-style="frostdark"]{
+  --bg:#0A0C11; --bg-2:#0F131A;
+  --surface:rgba(255,255,255,.055); --surface-2:rgba(255,255,255,.085); --surface-3:rgba(255,255,255,.13);
+  --ink:#EAF2F7; --ink-2:#9DAEBC; --ink-3:#6B7C8B;
+  --accent:#6EE7F9; --on-accent:#05161C; --accent-2:#39D0E8; --accent-soft:rgba(110,231,249,.16);
+  --ok:#4ADE80; --warn:#FBBF24; --err:#FB7185;
+  --ok-soft:rgba(74,222,128,.15); --warn-soft:rgba(251,191,36,.15); --err-soft:rgba(251,113,133,.15);
+  --bw:1px; --bc:rgba(255,255,255,.11); --r:14px; --r-sm:9px; --r-lg:20px; --r-pill:999px;
+  --sh:0 2px 12px rgba(0,0,0,.5); --sh-lg:0 20px 50px rgba(0,0,0,.75);
+  --grad:radial-gradient(700px 400px at 12% 0%,rgba(110,231,249,.16),transparent 62%),radial-gradient(640px 380px at 88% 26%,rgba(160,110,255,.16),transparent 60%);
+  --blur:18px;
+  --f-d:"Space Grotesk",sans-serif; --f-b:"Space Grotesk",sans-serif;
+  --h-w:700; --h-ls:-.03em;
+  --btn-r:11px; --btn-sh:0 4px 18px rgba(110,231,249,.28);
+  --in-bg:rgba(255,255,255,.06); --in-bc:rgba(255,255,255,.14); --in-r:11px; --lab-ls:.1em;
+}
+
+/* ═══════════ FAMILY 4 · RETRO ═══════════ */
+
+[data-style="y2k"]{
+  --bg:#D3ECFF; --bg-2:#C0E4FF; --surface:#FFF; --surface-2:#E8F5FF; --surface-3:#C7E4FA;
+  --ink:#062B4B; --ink-2:#2C5B85; --ink-3:#6E9AC0;
+  --accent:#0A84FF; --on-accent:#FFF; --accent-2:#0059B8; --accent-soft:#D6EAFF;
+  --ok:#34D07F; --warn:#FFB93B; --err:#FF6B6B;
+  --ok-soft:#D8F8E8; --warn-soft:#FFF1D6; --err-soft:#FFE1E1;
+  --bw:1px; --bc:#93C6EC; --r:15px; --r-sm:10px; --r-lg:22px; --r-pill:999px;
+  --sh:0 3px 8px rgba(10,80,150,.2),inset 0 1px 0 rgba(255,255,255,.95);
+  --sh-lg:0 14px 34px rgba(10,80,150,.32),inset 0 1px 0 rgba(255,255,255,.95);
+  --grad:linear-gradient(180deg,rgba(255,255,255,.7),rgba(180,225,255,.35));
+  --f-d:"Poppins",sans-serif; --f-b:"Poppins",sans-serif;
+  --h-w:700; --h-ls:-.02em;
+  --btn-r:999px; --btn-pad:11px 24px;
+  --btn-sh:0 4px 10px rgba(10,132,255,.42),inset 0 1px 0 rgba(255,255,255,.75);
+  --in-bg:#FFF; --in-r:999px; --in-sh:inset 0 2px 4px rgba(10,80,150,.14);
+}
+.kit[data-style="y2k"] .k-btn{background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,0) 52%,rgba(0,0,0,.08))}
+.kit[data-style="y2k"] .k-card,.kit[data-style="y2k"] .k-nav{background-image:linear-gradient(#FFF,#EAF6FF)}
+
+[data-style="vaporwave"]{
+  --bg:#1B0B33; --bg-2:#2A0F4D;
+  --surface:rgba(255,113,206,.1); --surface-2:rgba(1,205,254,.1); --surface-3:rgba(255,255,255,.14);
+  --ink:#FDF6FF; --ink-2:#D4B8F0; --ink-3:#9C7BC4;
+  --accent:#FF71CE; --on-accent:#1B0B33; --accent-2:#01CDFE; --accent-soft:rgba(255,113,206,.22);
+  --ok:#05FFA1; --warn:#FFFB96; --err:#FF6B9D;
+  --ok-soft:rgba(5,255,161,.18); --warn-soft:rgba(255,251,150,.18); --err-soft:rgba(255,107,157,.18);
+  --bw:1px; --bc:rgba(255,113,206,.44); --r:4px; --r-sm:3px; --r-lg:6px; --r-pill:999px;
+  --sh:0 0 18px rgba(255,113,206,.42); --sh-lg:0 0 48px rgba(1,205,254,.5);
+  --grad:linear-gradient(180deg,rgba(255,113,206,.28),transparent 42%),repeating-linear-gradient(0deg,rgba(1,205,254,.09) 0 1px,transparent 1px 42px),repeating-linear-gradient(90deg,rgba(1,205,254,.09) 0 1px,transparent 1px 42px);
+  --f-d:"Monoton",cursive; --f-b:"Chakra Petch",sans-serif;
+  --h-w:400; --h-ls:.05em;
+  --btn-r:3px; --btn-sh:0 0 16px rgba(255,113,206,.6); --btn-tt:uppercase; --btn-ls:.16em;
+  --in-bg:rgba(255,255,255,.08); --in-bc:rgba(1,205,254,.5); --in-r:3px; --lab-ls:.24em;
+}
+.kit[data-style="vaporwave"] h1,.kit[data-style="vaporwave"] h2{text-shadow:0 0 18px rgba(255,113,206,.85),0 0 42px rgba(1,205,254,.55)}
+
+[data-style="memphis"]{
+  --bg:#FDF6E3; --bg-2:#F8EDD0; --surface:#FFF; --surface-2:#FFF6DC; --surface-3:#FFE6A8;
+  --ink:#111; --ink-2:#39362E; --ink-3:#7C7666;
+  --accent:#FF5964; --on-accent:#FFF; --accent-2:#38B6FF; --accent-soft:#FFDFE1;
+  --ok:#35D0A0; --warn:#FFD23F; --err:#FF5964; --info:#38B6FF;
+  --ok-soft:#D8F7EC; --warn-soft:#FFF3CC; --err-soft:#FFDFE1; --info-soft:#D9EFFF;
+  --bw:2.5px; --bc:#111; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:999px;
+  --sh:5px 5px 0 #38B6FF; --sh-lg:9px 9px 0 #FFD23F;
+  --grad:radial-gradient(circle at 12% 14%,#FFD23F 0 9px,transparent 10px),radial-gradient(circle at 88% 8%,#38B6FF 0 13px,transparent 14px),radial-gradient(circle at 78% 92%,#FF5964 0 11px,transparent 12px);
+  --f-d:"Bungee",cursive; --f-b:"Poppins",sans-serif;
+  --h-w:400; --h-ls:.01em;
+  --btn-r:0px; --btn-sh:4px 4px 0 #111; --btn-bw:2.5px; --btn-w:700;
+  --in-bg:#FFF; --in-r:0px; --in-sh:3px 3px 0 #111; --lab-ls:.1em;
+}
+.kit[data-style="memphis"] .k-av,.kit[data-style="memphis"] .k-feat i{border-radius:999px}
+
+[data-style="pixel"]{
+  --bg:#0F0F1B; --bg-2:#16162A; --surface:#20203A; --surface-2:#2A2A4A; --surface-3:#3A3A62;
+  --ink:#FFF; --ink-2:#C0C0E0; --ink-3:#8080A8;
+  --accent:#E76E55; --on-accent:#FFF; --accent-2:#F4B942; --accent-soft:#4A2A28;
+  --ok:#6ABE30; --warn:#F4B942; --err:#E43B44; --info:#3FA9F5;
+  --ok-soft:#1E3316; --warn-soft:#3A2E10; --err-soft:#3A1416; --info-soft:#12283C;
+  --bw:3px; --bc:#FFF; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:4px 4px 0 #000; --sh-lg:8px 8px 0 #000;
+  --f-d:"Press Start 2P",monospace; --f-b:"Silkscreen",monospace;
+  --h-w:400; --h-ls:0; --h-lh:1.45; --b-size:12px; --b-lh:1.7;
+  --btn-r:0px; --btn-sh:4px 4px 0 #000; --btn-bw:3px; --btn-pad:10px 14px; --btn-tt:uppercase;
+  --in-bg:#20203A; --in-r:0px; --lab-ls:.05em; --pad:18px;
+}
+.kit[data-style="pixel"] h1{font-size:21px} .kit[data-style="pixel"] h2{font-size:16px}
+.kit[data-style="pixel"] h3{font-size:13px} .kit[data-style="pixel"] h4{font-size:11px}
+.kit[data-style="pixel"] .k-hero h1{font-size:24px}
+.kit[data-style="pixel"] .k-stat .vl{font-size:17px}
+.kit[data-style="pixel"] .k-gtitle{font-size:9px}
+
+[data-style="crt"]{
+  --bg:#050D07; --bg-2:#08150B; --surface:#0A1A0D; --surface-2:#0D2211; --surface-3:#143318;
+  --ink:#4AF626; --ink-2:#33C41B; --ink-3:#1E7D12;
+  --accent:#4AF626; --on-accent:#040A05; --accent-2:#9BFF7A; --accent-soft:#0F2A12;
+  --ok:#4AF626; --warn:#E5FF3D; --err:#FF5F3D; --info:#3DFFD1;
+  --ok-soft:#0F2A12; --warn-soft:#2A2A0C; --err-soft:#2A100A; --info-soft:#0A2A26;
+  --bw:1px; --bc:#1E7D12; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:0 0 10px rgba(74,246,38,.28); --sh-lg:0 0 28px rgba(74,246,38,.4);
+  --overlay:repeating-linear-gradient(0deg,rgba(0,0,0,.42) 0 1px,transparent 1px 3px);
+  --f-d:"VT323",monospace; --f-b:"VT323",monospace; --f-m:"VT323",monospace;
+  --h-w:400; --h-ls:.02em; --b-size:17px; --b-lh:1.4;
+  --btn-r:0px; --btn-sh:none; --btn-bw:1px; --btn-tt:uppercase; --btn-ls:.1em;
+  --in-bg:#08150B; --in-r:0px; --lab-ls:.14em; --lab-size:13px;
+}
+.kit[data-style="crt"]{text-shadow:0 0 6px rgba(74,246,38,.75)}
+.kit[data-style="crt"] .k-btn{background:#0F2A12;color:#4AF626}
+
+[data-style="win95"]{
+  --bg:#008080; --bg-2:#017070; --surface:#C0C0C0; --surface-2:#C0C0C0; --surface-3:#A8A8A8;
+  --ink:#000; --ink-2:#000; --ink-3:#555;
+  --accent:#000080; --on-accent:#FFF; --accent-2:#000060; --accent-soft:#B0B0C8;
+  --ok:#008000; --warn:#808000; --err:#800000; --info:#000080;
+  --ok-soft:#BCC8BC; --warn-soft:#C8C8B0; --err-soft:#C8B0B0; --info-soft:#B0B0C8;
+  --bw:0px; --bc:#808080; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:inset -1px -1px 0 #000,inset 1px 1px 0 #FFF,inset -2px -2px 0 #808080,inset 2px 2px 0 #DFDFDF;
+  --sh-lg:inset -1px -1px 0 #000,inset 1px 1px 0 #FFF,inset -2px -2px 0 #808080,inset 2px 2px 0 #DFDFDF,4px 4px 0 rgba(0,0,0,.3);
+  --f-d:"Inter",Tahoma,sans-serif; --f-b:"Inter",Tahoma,sans-serif;
+  --h-w:700; --h-ls:0; --b-size:12.5px; --b-lh:1.45;
+  --btn-r:0px; --btn-pad:5px 14px; --btn-w:400;
+  --btn-sh:inset -1px -1px 0 #000,inset 1px 1px 0 #FFF,inset -2px -2px 0 #808080,inset 2px 2px 0 #DFDFDF;
+  --in-bg:#FFF; --in-r:0px; --in-sh:inset 1px 1px 0 #808080,inset -1px -1px 0 #FFF,inset 2px 2px 0 #000;
+  --lab-tt:none; --lab-ls:0; --pad:12px;
+}
+.kit[data-style="win95"] .k-btn{background:#C0C0C0;color:#000}
+.kit[data-style="win95"] .k-btn:active{box-shadow:inset 1px 1px 0 #000,inset -1px -1px 0 #FFF}
+.kit[data-style="win95"] .k-modal .mh,.kit[data-style="win95"] .k-nav{background:#000080;color:#FFF}
+.kit[data-style="win95"] .k-modal .mh h4{color:#FFF}
+
+[data-style="deco"]{
+  --bg:#0D0D12; --bg-2:#131320; --surface:#15151F; --surface-2:#1C1C2A; --surface-3:#26263A;
+  --ink:#F3E9D2; --ink-2:#C4B58E; --ink-3:#8A7D5E;
+  --accent:#C9A227; --on-accent:#0D0D12; --accent-2:#E3C55B; --accent-soft:#2A2314;
+  --ok:#7FB069; --warn:#C9A227; --err:#B5533C;
+  --ok-soft:#1B2618; --warn-soft:#2A2314; --err-soft:#2A1613;
+  --bw:1px; --bc:#C9A227; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:0 20px 46px rgba(0,0,0,.7);
+  --grad:linear-gradient(180deg,rgba(201,162,39,.07),transparent 30%);
+  --f-d:"Cormorant Garamond",serif; --f-b:"Cormorant Garamond",serif;
+  --h-w:600; --h-ls:.16em; --h-tt:uppercase; --b-size:16px; --b-lh:1.65;
+  --btn-r:0px; --btn-sh:none; --btn-bw:1px; --btn-tt:uppercase; --btn-ls:.22em; --btn-w:600;
+  --in-bg:#15151F; --in-r:0px; --lab-ls:.3em;
+}
+.kit[data-style="deco"] .k-btn{background:transparent;color:#C9A227}
+.kit[data-style="deco"] .k-gtitle::after{background:linear-gradient(90deg,#C9A227,transparent)}
+
+[data-style="midcentury"]{
+  --bg:#F4EDE0; --bg-2:#EBE2D0; --surface:#FFFBF2; --surface-2:#F0E8D8; --surface-3:#DFD3BC;
+  --ink:#2E2A25; --ink-2:#5A5145; --ink-3:#8E836F;
+  --accent:#D96C2C; --on-accent:#FFFBF2; --accent-2:#2E7D74; --accent-soft:#F7DCC8;
+  --ok:#2E7D74; --warn:#E0A526; --err:#B4462F;
+  --ok-soft:#D5E8E5; --warn-soft:#F7EACB; --err-soft:#F2D9D2;
+  --bw:1px; --bc:#D6C8AE; --r:5px; --r-sm:3px; --r-lg:8px; --r-pill:999px;
+  --sh:0 2px 0 rgba(46,42,37,.1); --sh-lg:0 10px 24px -12px rgba(46,42,37,.4);
+  --f-d:"Outfit",sans-serif; --f-b:"DM Sans",sans-serif;
+  --h-w:600; --h-ls:-.01em;
+  --btn-r:4px; --btn-sh:0 2px 0 #A84E1B; --btn-w:600; --in-bg:#FFFBF2; --in-r:4px; --lab-ls:.12em;
+}
+.kit[data-style="midcentury"] .k-feat i,.kit[data-style="midcentury"] .k-av{border-radius:999px 999px 999px 3px}
+
+/* ═══════════ FAMILY 5 · FUTURE ═══════════ */
+
+[data-style="cyberpunk"]{
+  --bg:#08070E; --bg-2:#0D0B16; --surface:#12101E; --surface-2:#1A1729; --surface-3:#252038;
+  --ink:#F2F0FF; --ink-2:#A9A2C9; --ink-3:#6F6890;
+  --accent:#FF2A6D; --on-accent:#08070E; --accent-2:#05D9E8; --accent-soft:rgba(255,42,109,.16);
+  --ok:#39FF88; --warn:#F9F871; --err:#FF2A6D; --info:#05D9E8;
+  --ok-soft:rgba(57,255,136,.14); --warn-soft:rgba(249,248,113,.14); --err-soft:rgba(255,42,109,.14); --info-soft:rgba(5,217,232,.14);
+  --bw:1px; --bc:#05D9E8; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:0 0 14px rgba(5,217,232,.34); --sh-lg:0 0 40px rgba(255,42,109,.44);
+  --grad:linear-gradient(180deg,rgba(255,42,109,.09),transparent 34%);
+  --f-d:"Chakra Petch",sans-serif; --f-b:"Chakra Petch",sans-serif;
+  --h-w:700; --h-ls:.03em; --h-tt:uppercase;
+  --btn-r:0px; --btn-sh:0 0 16px rgba(255,42,109,.55); --btn-tt:uppercase; --btn-ls:.14em; --btn-bw:1px;
+  --in-bg:#12101E; --in-bc:#05D9E8; --in-r:0px; --lab-ls:.2em;
+}
+.kit[data-style="cyberpunk"] .k-card,.kit[data-style="cyberpunk"] .k-hero,.kit[data-style="cyberpunk"] .k-btn{
+  clip-path:polygon(0 0,calc(100% - 11px) 0,100% 11px,100% 100%,11px 100%,0 calc(100% - 11px))}
+.kit[data-style="cyberpunk"] h1,.kit[data-style="cyberpunk"] h2{text-shadow:0 0 16px rgba(255,42,109,.6)}
+
+[data-style="hud"]{
+  --bg:#03121A; --bg-2:#051A25; --surface:rgba(53,224,242,.05); --surface-2:rgba(53,224,242,.09); --surface-3:rgba(53,224,242,.16);
+  --ink:#D6F7FF; --ink-2:#7EBCCC; --ink-3:#4E8494;
+  --accent:#35E0F2; --on-accent:#03121A; --accent-2:#8CF3FF; --accent-soft:rgba(53,224,242,.14);
+  --ok:#4BFFA5; --warn:#FFC857; --err:#FF6B6B;
+  --ok-soft:rgba(75,255,165,.12); --warn-soft:rgba(255,200,87,.12); --err-soft:rgba(255,107,107,.12);
+  --bw:1px; --bc:rgba(53,224,242,.4); --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:0 0 34px rgba(53,224,242,.26);
+  --grad:repeating-linear-gradient(0deg,rgba(53,224,242,.045) 0 1px,transparent 1px 34px),repeating-linear-gradient(90deg,rgba(53,224,242,.045) 0 1px,transparent 1px 34px);
+  --f-d:"Orbitron",sans-serif; --f-b:"IBM Plex Mono",monospace;
+  --h-w:700; --h-ls:.09em; --h-tt:uppercase; --b-size:12.5px;
+  --btn-r:0px; --btn-sh:none; --btn-bw:1px; --btn-tt:uppercase; --btn-ls:.18em;
+  --in-bg:rgba(53,224,242,.06); --in-r:0px; --lab-ls:.26em;
+}
+.kit[data-style="hud"] .k-btn{background:transparent;color:#35E0F2}
+.kit[data-style="hud"] .k-card{position:relative}
+.kit[data-style="hud"] .k-card::before,.kit[data-style="hud"] .k-card::after{
+  content:"";position:absolute;width:13px;height:13px;border:2px solid #35E0F2}
+.kit[data-style="hud"] .k-card::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.kit[data-style="hud"] .k-card::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+
+[data-style="synthwave"]{
+  --bg:#190034; --bg-2:#25004D;
+  --surface:rgba(255,255,255,.06); --surface-2:rgba(255,255,255,.1); --surface-3:rgba(255,255,255,.16);
+  --ink:#FFF0FB; --ink-2:#D3A6F0; --ink-3:#9E76C0;
+  --accent:#FF2E97; --on-accent:#190034; --accent-2:#00E5FF; --accent-soft:rgba(255,46,151,.18);
+  --ok:#00FFC8; --warn:#FFD166; --err:#FF477E;
+  --ok-soft:rgba(0,255,200,.14); --warn-soft:rgba(255,209,102,.14); --err-soft:rgba(255,71,126,.14);
+  --bw:1px; --bc:rgba(255,46,151,.44); --r:6px; --r-sm:4px; --r-lg:9px; --r-pill:999px;
+  --sh:0 0 16px rgba(255,46,151,.42); --sh-lg:0 0 44px rgba(0,229,255,.44);
+  --grad:linear-gradient(180deg,rgba(255,46,151,.24),transparent 44%),radial-gradient(560px 200px at 50% 104%,rgba(255,140,0,.5),transparent 66%),repeating-linear-gradient(0deg,rgba(0,229,255,.08) 0 1px,transparent 1px 38px);
+  --f-d:"Orbitron",sans-serif; --f-b:"Chakra Petch",sans-serif;
+  --h-w:900; --h-ls:.04em; --h-tt:uppercase;
+  --btn-r:5px; --btn-sh:0 0 18px rgba(255,46,151,.7); --btn-tt:uppercase; --btn-ls:.12em;
+  --in-bg:rgba(255,255,255,.08); --in-bc:rgba(0,229,255,.5); --in-r:5px; --lab-ls:.2em;
+}
+.kit[data-style="synthwave"] h1,.kit[data-style="synthwave"] h2{
+  text-shadow:0 0 12px rgba(255,46,151,.9),0 0 34px rgba(0,229,255,.5)}
+
+[data-style="matrix"]{
+  --bg:#000; --bg-2:#020602; --surface:#040A04; --surface-2:#071007; --surface-3:#0C1A0C;
+  --ink:#00FF41; --ink-2:#0BB82F; --ink-3:#077A1F;
+  --accent:#00FF41; --on-accent:#000; --accent-2:#7CFF9E; --accent-soft:#04180A;
+  --ok:#00FF41; --warn:#B8FF00; --err:#FF3B3B; --info:#00FFD1;
+  --ok-soft:#04180A; --warn-soft:#141800; --err-soft:#180404; --info-soft:#001815;
+  --bw:1px; --bc:#0BB82F; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:0 0 26px rgba(0,255,65,.28);
+  --f-d:"IBM Plex Mono",monospace; --f-b:"IBM Plex Mono",monospace;
+  --h-w:600; --h-ls:.06em; --h-tt:uppercase; --b-size:12.5px;
+  --btn-r:0px; --btn-sh:none; --btn-bw:1px; --btn-tt:uppercase; --btn-ls:.12em;
+  --in-bg:#040A04; --in-r:0px; --lab-ls:.18em;
+}
+.kit[data-style="matrix"] .k-btn{background:#04180A;color:#00FF41}
+
+[data-style="glitch"]{
+  --bg:#0C0C0F; --bg-2:#131318; --surface:#15151B; --surface-2:#1D1D25; --surface-3:#2A2A34;
+  --ink:#F5F5F7; --ink-2:#A8A8B4; --ink-3:#6E6E7C;
+  --accent:#FF003C; --on-accent:#FFF; --accent-2:#00FFF7; --accent-soft:rgba(255,0,60,.16);
+  --ok:#00FFA3; --warn:#FFE600; --err:#FF003C; --info:#00FFF7;
+  --ok-soft:rgba(0,255,163,.13); --warn-soft:rgba(255,230,0,.13); --err-soft:rgba(255,0,60,.13); --info-soft:rgba(0,255,247,.13);
+  --bw:1px; --bc:#2E2E3A; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:3px 0 0 rgba(0,255,247,.5),-3px 0 0 rgba(255,0,60,.5); --sh-lg:6px 0 0 rgba(0,255,247,.4),-6px 0 0 rgba(255,0,60,.4);
+  --f-d:"Space Grotesk",sans-serif; --f-b:"IBM Plex Mono",monospace;
+  --h-w:700; --h-ls:-.03em; --h-tt:uppercase; --b-size:12.5px;
+  --btn-r:0px; --btn-sh:2px 2px 0 rgba(0,255,247,.7); --btn-tt:uppercase; --btn-ls:.1em;
+  --in-bg:#15151B; --in-r:0px; --lab-ls:.16em;
+}
+.kit[data-style="glitch"] h1,.kit[data-style="glitch"] h2,.kit[data-style="glitch"] .k-stat .vl{
+  text-shadow:2px 0 0 rgba(255,0,60,.85),-2px 0 0 rgba(0,255,247,.85)}
+
+[data-style="holo"]{
+  --bg:#F6F4FF; --bg-2:#EFEBFF; --surface:rgba(255,255,255,.66); --surface-2:rgba(255,255,255,.44); --surface-3:rgba(190,180,255,.3);
+  --ink:#221B3D; --ink-2:#544B7A; --ink-3:#8B82AE;
+  --accent:#8B5CF6; --on-accent:#FFF; --accent-2:#EC4899; --accent-soft:rgba(139,92,246,.16);
+  --ok:#2DD4BF; --warn:#FBBF24; --err:#F472B6;
+  --ok-soft:rgba(45,212,191,.16); --warn-soft:rgba(251,191,36,.18); --err-soft:rgba(244,114,182,.16);
+  --bw:1px; --bc:rgba(255,255,255,.82); --r:16px; --r-sm:11px; --r-lg:24px; --r-pill:999px;
+  --sh:0 6px 24px rgba(140,110,220,.18); --sh-lg:0 18px 48px rgba(140,110,220,.3);
+  --grad:linear-gradient(115deg,rgba(255,190,230,.62),rgba(190,225,255,.62) 26%,rgba(200,255,225,.62) 48%,rgba(255,240,180,.62) 70%,rgba(230,190,255,.62));
+  --blur:16px;
+  --f-d:"Outfit",sans-serif; --f-b:"Outfit",sans-serif;
+  --h-w:600; --h-ls:-.02em;
+  --btn-r:13px; --btn-sh:0 6px 20px rgba(139,92,246,.34);
+  --in-bg:rgba(255,255,255,.62); --in-r:12px; --lab-ls:.09em;
+}
+.kit[data-style="holo"] .k-btn{background-image:linear-gradient(115deg,#8B5CF6,#EC4899 52%,#22D3EE)}
+
+[data-style="darkpro"]{
+  --bg:#08090B; --bg-2:#0D0E11; --surface:#121317; --surface-2:#17181D; --surface-3:#22242B;
+  --ink:#EDEEF0; --ink-2:#9B9FA8; --ink-3:#6B707A;
+  --accent:#7C6BF5; --on-accent:#FFF; --accent-2:#6354E8; --accent-soft:rgba(124,107,245,.16);
+  --ok:#3ECF8E; --warn:#E5A50A; --err:#F26D6D;
+  --ok-soft:rgba(62,207,142,.13); --warn-soft:rgba(229,165,10,.13); --err-soft:rgba(242,109,109,.13);
+  --bw:1px; --bc:#232529; --r:9px; --r-sm:6px; --r-lg:13px; --r-pill:999px;
+  --sh:0 1px 2px rgba(0,0,0,.6); --sh-lg:0 16px 44px rgba(0,0,0,.85);
+  --f-d:"Inter",sans-serif; --f-b:"Inter",sans-serif;
+  --h-w:600; --h-ls:-.028em;
+  --btn-r:7px; --btn-sh:none; --btn-w:500; --btn-pad:9px 16px;
+  --in-bg:#0E0F12; --in-bc:#25272C; --in-r:7px; --lab-ls:.06em; --b-size:13.5px;
+}
+
+[data-style="blueprint"]{
+  --bg:#0A2A4A; --bg-2:#0C3157; --surface:rgba(255,255,255,.05); --surface-2:rgba(255,255,255,.08); --surface-3:rgba(255,255,255,.14);
+  --ink:#DCEEFF; --ink-2:#93BEE0; --ink-3:#5E8CB0;
+  --accent:#5FC8FF; --on-accent:#062038; --accent-2:#A6E1FF; --accent-soft:rgba(95,200,255,.15);
+  --ok:#7BE8B0; --warn:#FFD98A; --err:#FF9A9A;
+  --ok-soft:rgba(123,232,176,.13); --warn-soft:rgba(255,217,138,.13); --err-soft:rgba(255,154,154,.13);
+  --bw:1px; --bc:rgba(150,205,245,.42); --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:none;
+  --grad:repeating-linear-gradient(0deg,rgba(160,210,255,.09) 0 1px,transparent 1px 26px),repeating-linear-gradient(90deg,rgba(160,210,255,.09) 0 1px,transparent 1px 26px);
+  --f-d:"IBM Plex Mono",monospace; --f-b:"IBM Plex Mono",monospace;
+  --h-w:500; --h-ls:.06em; --h-tt:uppercase; --b-size:12.5px;
+  --btn-r:0px; --btn-sh:none; --btn-bw:1px; --btn-tt:uppercase; --btn-ls:.14em;
+  --in-bg:rgba(255,255,255,.05); --in-r:0px; --lab-ls:.22em;
+}
+.kit[data-style="blueprint"] .k-btn{background:transparent;color:#5FC8FF}
+
+/* ═══════════ FAMILY 6 · PRINT ═══════════ */
+
+[data-style="editorial"]{
+  --bg:#FBF9F4; --bg-2:#F3F0E7; --surface:#FFF; --surface-2:#F6F3EB; --surface-3:#E6E1D3;
+  --ink:#14110D; --ink-2:#4A4438; --ink-3:#8B8474;
+  --accent:#A8322A; --on-accent:#FBF9F4; --accent-2:#7A1F19; --accent-soft:#F2DEDB;
+  --bw:1px; --bc:#DDD7C7; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:999px;
+  --sh:none; --sh-lg:0 16px 40px -24px rgba(0,0,0,.5);
+  --f-d:"Playfair Display",serif; --f-b:"Libre Baskerville",serif;
+  --h-w:900; --h-ls:-.02em; --h-lh:1.05; --b-size:14px; --b-lh:1.75;
+  --btn-r:0px; --btn-sh:none; --btn-tt:uppercase; --btn-ls:.14em; --btn-w:700; --btn-pad:11px 22px;
+  --in-r:0px; --lab-ls:.2em; --pad:26px;
+}
+.kit[data-style="editorial"] .k-hero p::first-letter{
+  float:left;font-family:"Playfair Display",serif;font-size:62px;line-height:.82;
+  padding:5px 10px 0 0;color:#A8322A;font-weight:900}
+
+[data-style="fashion"]{
+  --bg:#FFF; --bg-2:#FAFAFA; --surface:#FFF; --surface-2:#F7F7F7; --surface-3:#EAEAEA;
+  --ink:#000; --ink-2:#4A4A4A; --ink-3:#9A9A9A;
+  --accent:#000; --on-accent:#FFF; --accent-2:#000; --accent-soft:#F2F2F2;
+  --ok:#000; --warn:#7A7A7A; --err:#000; --info:#4A4A4A;
+  --ok-soft:#F2F2F2; --warn-soft:#EFEFEF; --err-soft:#EBEBEB; --info-soft:#F5F5F5;
+  --bw:1px; --bc:#E2E2E2; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:none;
+  --f-d:"Cormorant Garamond",serif; --f-b:"Outfit",sans-serif;
+  --h-w:300; --h-ls:.3em; --h-tt:uppercase; --h-lh:1.35; --b-lh:1.9; --b-ls:.05em; --b-size:13px;
+  --btn-r:0px; --btn-sh:none; --btn-tt:uppercase; --btn-ls:.34em; --btn-w:400; --btn-pad:14px 30px; --btn-bw:1px;
+  --in-r:0px; --lab-ls:.34em; --lab-w:400; --pad:34px; --gap:28px;
+}
+.kit[data-style="fashion"] .k-btn{background:transparent;color:#000;border-color:#000}
+
+[data-style="luxe"]{
+  --bg:#121110; --bg-2:#1A1917; --surface:#1B1A18; --surface-2:#232120; --surface-3:#302D2A;
+  --ink:#EFE7D7; --ink-2:#B8AC94; --ink-3:#867C68;
+  --accent:#BFA05A; --on-accent:#121110; --accent-2:#DCC182; --accent-soft:#2A2519;
+  --ok:#8FA97A; --warn:#BFA05A; --err:#B5654F;
+  --ok-soft:#1E241B; --warn-soft:#2A2519; --err-soft:#251715;
+  --bw:1px; --bc:#3A352C; --r:2px; --r-sm:1px; --r-lg:3px; --r-pill:999px;
+  --sh:none; --sh-lg:0 22px 54px rgba(0,0,0,.75);
+  --f-d:"Playfair Display",serif; --f-b:"Cormorant Garamond",serif;
+  --h-w:400; --h-ls:.05em; --b-size:16px; --b-lh:1.75;
+  --btn-r:1px; --btn-sh:none; --btn-tt:uppercase; --btn-ls:.26em; --btn-w:600; --btn-bw:1px; --btn-pad:13px 28px;
+  --in-bg:#1B1A18; --in-r:1px; --lab-ls:.3em; --pad:28px;
+}
+.kit[data-style="luxe"] .k-btn{background:transparent;color:#BFA05A;border-color:#BFA05A}
+
+[data-style="newspaper"]{
+  --bg:#F6F3EA; --bg-2:#EFEBE0; --surface:#FBF9F2; --surface-2:#F1EDE2; --surface-3:#E0DACB;
+  --ink:#141310; --ink-2:#3B3730; --ink-3:#7A7365;
+  --accent:#141310; --on-accent:#F6F3EA; --accent-2:#8B1A15; --accent-soft:#E4DFD1;
+  --ok:#2F5D3A; --warn:#8A6B14; --err:#8B1A15;
+  --ok-soft:#DEE7DF; --warn-soft:#EFE7CE; --err-soft:#EFDCDA;
+  --bw:1px; --bc:#141310; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:none;
+  --f-d:"Playfair Display",serif; --f-b:"Libre Baskerville",serif;
+  --h-w:900; --h-ls:-.03em; --h-lh:1.02; --b-size:13px; --b-lh:1.62;
+  --btn-r:0px; --btn-sh:none; --btn-bw:1px; --btn-tt:uppercase; --btn-ls:.12em; --btn-pad:8px 16px;
+  --in-r:0px; --lab-ls:.16em; --pad:18px;
+}
+.kit[data-style="newspaper"] .k-gtitle::after{background:#141310;height:3px;box-shadow:0 3px 0 #F6F3EA,0 4px 0 #141310}
+
+[data-style="typewriter"]{
+  --bg:#F2EDDF; --bg-2:#EAE4D3; --surface:#F8F5EA; --surface-2:#EEE9DA; --surface-3:#DDD6C2;
+  --ink:#2B2620; --ink-2:#544E44; --ink-3:#8A8375;
+  --accent:#2B2620; --on-accent:#F8F5EA; --accent-2:#7A3B2E; --accent-soft:#E3DCC9;
+  --ok:#4A5D3A; --warn:#8A6B14; --err:#7A3B2E;
+  --ok-soft:#E0E4D6; --warn-soft:#EDE5CD; --err-soft:#EBDCD6;
+  --bw:1px; --bc:#C7BFA9; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:none; --sh-lg:2px 2px 0 rgba(43,38,32,.16);
+  --tex:repeating-linear-gradient(0deg,rgba(120,105,80,.035) 0 1px,transparent 1px 4px);
+  --f-d:"Special Elite",monospace; --f-b:"Special Elite",monospace; --f-m:"Special Elite",monospace;
+  --h-w:400; --h-ls:0; --b-lh:1.85; --b-size:13.5px;
+  --btn-r:0px; --btn-sh:none; --btn-bw:1px; --btn-tt:uppercase; --btn-ls:.1em;
+  --in-bg:#F8F5EA; --in-r:0px; --lab-ls:.14em;
+}
+.kit[data-style="typewriter"] .k-btn{background:transparent;color:#2B2620}
+
+[data-style="academic"]{
+  --bg:#FFFDF8; --bg-2:#F8F5EE; --surface:#FFF; --surface-2:#F7F5EE; --surface-3:#E9E5DA;
+  --ink:#1A1A1A; --ink-2:#454545; --ink-3:#858585;
+  --accent:#1F4E79; --on-accent:#FFF; --accent-2:#153A5B; --accent-soft:#DEE8F1;
+  --ok:#2C6E49; --warn:#8A6410; --err:#9B2226;
+  --ok-soft:#DEEBE3; --warn-soft:#F2EAD2; --err-soft:#F2DEDE;
+  --bw:1px; --bc:#DCD7CA; --r:2px; --r-sm:1px; --r-lg:3px; --r-pill:999px;
+  --sh:none; --sh-lg:0 6px 18px -12px rgba(0,0,0,.4);
+  --f-d:"Libre Baskerville",serif; --f-b:"Libre Baskerville",serif;
+  --h-w:700; --h-ls:-.01em; --b-size:13.5px; --b-lh:1.8;
+  --btn-r:2px; --btn-sh:none; --btn-w:700; --btn-pad:8px 16px; --in-r:2px; --lab-ls:.1em;
+}
+
+[data-style="riso"]{
+  --bg:#F3F0E4; --bg-2:#ECE8D8; --surface:#FAF8EE; --surface-2:#EFEBDB; --surface-3:#DFDAC6;
+  --ink:#1A1A1A; --ink-2:#414141; --ink-3:#7C7A70;
+  --accent:#FF48B0; --on-accent:#FAF8EE; --accent-2:#0033A0; --accent-soft:#FFD9EE;
+  --ok:#00A88A; --warn:#FFB800; --err:#FF48B0; --info:#0033A0;
+  --ok-soft:#CFF0E9; --warn-soft:#FFEFC7; --err-soft:#FFD9EE; --info-soft:#D2DCF3;
+  --bw:1.5px; --bc:#1A1A1A; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:999px;
+  --sh:3px 3px 0 rgba(0,51,160,.55); --sh-lg:6px 6px 0 rgba(255,72,176,.55);
+  --tex:radial-gradient(rgba(0,0,0,.055) 1px,transparent 1px);
+  --f-d:"Archivo Black",sans-serif; --f-b:"Space Grotesk",sans-serif;
+  --h-w:400; --h-ls:-.02em; --h-tt:uppercase;
+  --btn-r:0px; --btn-sh:3px 3px 0 #0033A0; --btn-bw:1.5px; --btn-tt:uppercase; --btn-ls:.09em;
+  --in-bg:#FAF8EE; --in-r:0px; --lab-ls:.14em;
+}
+.kit[data-style="riso"]{background-size:auto,4px 4px}
+.kit[data-style="riso"] h1,.kit[data-style="riso"] h2{text-shadow:3px 3px 0 rgba(0,51,160,.42)}
+
+[data-style="zine"]{
+  --bg:#E8E4D8; --bg-2:#DFDACC; --surface:#F4F1E6; --surface-2:#E4E0D2; --surface-3:#CFC9B8;
+  --ink:#0A0A0A; --ink-2:#2E2E2E; --ink-3:#6E6A62;
+  --accent:#E02200; --on-accent:#F4F1E6; --accent-2:#0A0A0A; --accent-soft:#F7D6CE;
+  --ok:#2F6B2F; --warn:#B87200; --err:#E02200;
+  --ok-soft:#DDE8DD; --warn-soft:#F3E4C8; --err-soft:#F7D6CE;
+  --bw:3px; --bc:#0A0A0A; --r:0px; --r-sm:0px; --r-lg:0px; --r-pill:0px;
+  --sh:5px 5px 0 rgba(10,10,10,.85); --sh-lg:9px 9px 0 rgba(10,10,10,.85);
+  --tex:repeating-linear-gradient(58deg,rgba(0,0,0,.045) 0 1px,transparent 1px 3px),radial-gradient(rgba(0,0,0,.07) 1px,transparent 1px);
+  --f-d:"Archivo Black",sans-serif; --f-b:"Special Elite",monospace;
+  --h-w:400; --h-ls:-.03em; --h-tt:uppercase;
+  --btn-r:0px; --btn-sh:4px 4px 0 #0A0A0A; --btn-bw:3px; --btn-tt:uppercase; --btn-ls:.08em;
+  --in-bg:#F4F1E6; --in-r:0px; --lab-ls:.14em;
+}
+.kit[data-style="zine"]{background-size:auto,auto,3px 3px}
+.kit[data-style="zine"] .k-card:nth-child(odd){transform:rotate(-.7deg)}
+.kit[data-style="zine"] .k-card:nth-child(even){transform:rotate(.6deg)}
+
+/* ═══════════ FAMILY 7 · ORGANIC ═══════════ */
+
+[data-style="sketch"]{
+  --bg:#FFFDF5; --bg-2:#F9F6EA; --surface:#FFF; --surface-2:#FAF8EE; --surface-3:#EAE6D6;
+  --ink:#2A2622; --ink-2:#544E46; --ink-3:#8B8479;
+  --accent:#2B6CB0; --on-accent:#FFF; --accent-2:#1A4E86; --accent-soft:#DCE9F6;
+  --ok:#3E8E5A; --warn:#D19100; --err:#C0392B;
+  --ok-soft:#DDEEE3; --warn-soft:#F7ECCD; --err-soft:#F5DCD9;
+  --bw:2px; --bc:#2A2622; --r:14px; --r-sm:9px; --r-lg:18px; --r-pill:999px;
+  --sh:2px 3px 0 rgba(42,38,34,.16); --sh-lg:5px 6px 0 rgba(42,38,34,.2);
+  --f-d:"Caveat",cursive; --f-b:"Caveat",cursive;
+  --h-w:700; --h-ls:0; --b-size:18px; --b-lh:1.45;
+  --btn-r:16px; --btn-sh:2px 3px 0 rgba(42,38,34,.3); --btn-bw:2px; --btn-w:700;
+  --in-bg:#FFF; --in-r:12px; --lab-ls:.04em; --lab-size:13px; --lab-tt:none;
+}
+.kit[data-style="sketch"] .k-card,.kit[data-style="sketch"] .k-btn,.kit[data-style="sketch"] .k-in,
+.kit[data-style="sketch"] .k-panel,.kit[data-style="sketch"] .k-alert{
+  border-radius:245px 15px 225px 15px/15px 225px 15px 255px}
+.kit[data-style="sketch"] .k-gtitle::after{background:#2A2622;height:2px}
+
+[data-style="kawaii"]{
+  --bg:#FFF4F8; --bg-2:#FFE9F1; --surface:#FFF; --surface-2:#FFF0F6; --surface-3:#FFD9E7;
+  --ink:#5A3A4A; --ink-2:#8A6478; --ink-3:#BE94A8;
+  --accent:#FF8FB1; --on-accent:#FFF; --accent-2:#F2679A; --accent-soft:#FFE4EE;
+  --ok:#7BDFF2; --warn:#FFD972; --err:#FF9AA2;
+  --ok-soft:#DFF6FB; --warn-soft:#FFF5D9; --err-soft:#FFE6E8;
+  --bw:2px; --bc:#FFD0E1; --r:24px; --r-sm:15px; --r-lg:32px; --r-pill:999px;
+  --sh:0 5px 0 #FFD0E1; --sh-lg:0 10px 24px rgba(255,143,177,.35);
+  --f-d:"Rubik",sans-serif; --f-b:"Rubik",sans-serif;
+  --h-w:700; --h-ls:-.01em;
+  --btn-r:999px; --btn-sh:0 4px 0 #F2679A; --btn-w:700; --btn-pad:12px 24px;
+  --in-bg:#FFF; --in-r:999px; --lab-tt:none; --lab-ls:.03em;
+}
+
+[data-style="nature"]{
+  --bg:#F4F2E7; --bg-2:#EBE8D9; --surface:#FCFBF5; --surface-2:#F0EDE0; --surface-3:#DDD9C6;
+  --ink:#22301E; --ink-2:#4B5A44; --ink-3:#83907A;
+  --accent:#4A6B3D; --on-accent:#FCFBF5; --accent-2:#8C6239; --accent-soft:#DEE7D8;
+  --ok:#4A6B3D; --warn:#B8862B; --err:#A34A2E;
+  --ok-soft:#DEE7D8; --warn-soft:#F2E7CA; --err-soft:#F0DCD3;
+  --bw:1px; --bc:#D3CDB8; --r:14px; --r-sm:9px; --r-lg:20px; --r-pill:999px;
+  --sh:0 2px 6px rgba(45,60,40,.07); --sh-lg:0 14px 34px -18px rgba(45,60,40,.5);
+  --f-d:"Fraunces",serif; --f-b:"DM Sans",sans-serif;
+  --h-w:700; --h-ls:-.02em;
+  --btn-r:999px; --btn-sh:none; --btn-w:600; --btn-pad:11px 22px;
+  --in-bg:#FCFBF5; --in-r:12px; --lab-ls:.12em;
+}
+.kit[data-style="nature"] .k-feat i,.kit[data-style="nature"] .k-av{border-radius:60% 40% 55% 45%/50% 55% 45% 50%}
+
+[data-style="comic"]{
+  --bg:#FFF3B0; --bg-2:#FFEB87; --surface:#FFF; --surface-2:#FFFBE0; --surface-3:#FFE45C;
+  --ink:#0A0A0A; --ink-2:#242424; --ink-3:#6A6A5A;
+  --accent:#ED1C24; --on-accent:#FFF; --accent-2:#0066B3; --accent-soft:#FFD5D6;
+  --ok:#00A651; --warn:#FFC20E; --err:#ED1C24; --info:#0066B3;
+  --ok-soft:#D3F1E0; --warn-soft:#FFF1C7; --err-soft:#FFD5D6; --info-soft:#D2E5F5;
+  --bw:3.5px; --bc:#0A0A0A; --r:8px; --r-sm:5px; --r-lg:12px; --r-pill:999px;
+  --sh:5px 5px 0 #0A0A0A; --sh-lg:9px 9px 0 #0A0A0A;
+  --tex:radial-gradient(#0A0A0A 1.1px,transparent 1.2px);
+  --f-d:"Bungee",cursive; --f-b:"Poppins",sans-serif;
+  --h-w:400; --h-ls:.01em;
+  --btn-r:8px; --btn-sh:4px 4px 0 #0A0A0A; --btn-bw:3.5px; --btn-w:700; --btn-tt:uppercase;
+  --in-bg:#FFF; --in-r:8px; --lab-ls:.1em;
+}
+.kit[data-style="comic"]{background-size:7px 7px}
+.kit[data-style="comic"] .k-bub{border-width:3.5px;box-shadow:4px 4px 0 #0A0A0A}
+
+[data-style="candy"]{
+  --bg:#FFEDF6; --bg-2:#FFE0EF; --surface:#FFF; --surface-2:#FFF2F9; --surface-3:#FFD3E8;
+  --ink:#4A1F3D; --ink-2:#7A4468; --ink-3:#B27CA0;
+  --accent:#FF4D8D; --on-accent:#FFF; --accent-2:#FF9F1C; --accent-soft:#FFDCE9;
+  --ok:#2EC4B6; --warn:#FF9F1C; --err:#E71D36;
+  --ok-soft:#D2F4F1; --warn-soft:#FFEBD2; --err-soft:#FBD5D9;
+  --bw:0px; --bc:transparent; --r:22px; --r-sm:14px; --r-lg:30px; --r-pill:999px;
+  --sh:0 8px 20px rgba(255,77,141,.28),inset 0 -4px 0 rgba(0,0,0,.07),inset 0 3px 0 rgba(255,255,255,.85);
+  --sh-lg:0 16px 40px rgba(255,77,141,.36),inset 0 3px 0 rgba(255,255,255,.9);
+  --f-d:"Rubik",sans-serif; --f-b:"Rubik",sans-serif;
+  --h-w:700; --h-ls:-.02em;
+  --btn-r:999px; --btn-pad:13px 26px; --btn-w:700;
+  --btn-sh:0 6px 0 #D63A72,0 10px 20px rgba(255,77,141,.4),inset 0 2px 0 rgba(255,255,255,.6);
+  --in-bg:#FFF2F9; --in-r:999px; --lab-tt:none; --lab-ls:.02em;
+}
+.kit[data-style="candy"] .k-btn{background-image:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,0) 55%)}
+.kit[data-style="candy"] .k-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #D63A72}
+
+[data-style="startup"]{
+  --bg:#FFF; --bg-2:#F8FAFC; --surface:#FFF; --surface-2:#F8FAFC; --surface-3:#E9EEF5;
+  --ink:#0F172A; --ink-2:#475569; --ink-3:#94A3B8;
+  --accent:#6366F1; --on-accent:#FFF; --accent-2:#8B5CF6; --accent-soft:#EEF0FE;
+  --ok:#10B981; --warn:#F59E0B; --err:#EF4444;
+  --ok-soft:#D1FAE5; --warn-soft:#FEF3C7; --err-soft:#FEE2E2;
+  --bw:1px; --bc:#E5E9F0; --r:14px; --r-sm:9px; --r-lg:20px; --r-pill:999px;
+  --sh:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --sh-lg:0 20px 44px -18px rgba(99,102,241,.4);
+  --grad:radial-gradient(700px 340px at 50% -10%,rgba(99,102,241,.11),transparent 70%);
+  --f-d:"Outfit",sans-serif; --f-b:"DM Sans",sans-serif;
+  --h-w:800; --h-ls:-.035em;
+  --btn-r:11px; --btn-sh:0 5px 14px rgba(99,102,241,.32); --btn-w:600; --btn-pad:11px 20px;
+  --in-bg:#FFF; --in-r:11px; --lab-tt:none; --lab-ls:.02em;
+}
+.kit[data-style="startup"] .k-btn{background-image:linear-gradient(135deg,#6366F1,#8B5CF6)}
+.kit[data-style="startup"] .k-hero h1{background:linear-gradient(120deg,#0F172A 30%,#6366F1);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+[data-style="scrapbook"]{
+  --bg:#EFE7D6; --bg-2:#E6DCC7; --surface:#FDFBF2; --surface-2:#F4EFE0; --surface-3:#E0D7C0;
+  --ink:#2E2A21; --ink-2:#57503F; --ink-3:#8E8776;
+  --accent:#D9705C; --on-accent:#FDFBF2; --accent-2:#4E7C8A; --accent-soft:#F6DDD6;
+  --ok:#6B9B5E; --warn:#D9A441; --err:#C25B4A;
+  --ok-soft:#E1EBDB; --warn-soft:#F7EBD1; --err-soft:#F4DDD8;
+  --bw:1px; --bc:#CFC4A9; --r:3px; --r-sm:2px; --r-lg:4px; --r-pill:999px;
+  --sh:2px 3px 7px rgba(60,50,30,.22); --sh-lg:5px 7px 18px rgba(60,50,30,.3);
+  --tex:repeating-linear-gradient(0deg,rgba(120,100,60,.03) 0 1px,transparent 1px 5px);
+  --f-d:"Caveat",cursive; --f-b:"DM Sans",sans-serif;
+  --h-w:700; --h-ls:0; --h-lh:1.2;
+  --btn-r:3px; --btn-sh:2px 2px 5px rgba(60,50,30,.3); --btn-w:600;
+  --in-bg:#FDFBF2; --in-r:2px; --lab-ls:.1em;
+}
+.kit[data-style="scrapbook"] .k-card{position:relative}
+.kit[data-style="scrapbook"] .k-card::before{
+  content:"";position:absolute;top:-9px;left:50%;width:64px;height:19px;margin-left:-32px;
+  background:rgba(226,214,178,.82);border:1px solid rgba(190,175,135,.5);transform:rotate(-2.4deg)}
+.kit[data-style="scrapbook"] .k-card:nth-child(3n){transform:rotate(-1deg)}
+.kit[data-style="scrapbook"] .k-card:nth-child(3n+1){transform:rotate(.8deg)}
+
+[data-style="blob"]{
+  --bg:#EFF7F3; --bg-2:#E5F2EC; --surface:#FFF; --surface-2:#F3FAF6; --surface-3:#D9EDE4;
+  --ink:#16302A; --ink-2:#456358; --ink-3:#83A197;
+  --accent:#FF7A59; --on-accent:#FFF; --accent-2:#2EAF8B; --accent-soft:#FFE3DB;
+  --ok:#2EAF8B; --warn:#FFB84D; --err:#FF6B6B;
+  --ok-soft:#D6F2E9; --warn-soft:#FFF0D9; --err-soft:#FFE1E1;
+  --bw:0px; --bc:transparent; --r:26px; --r-sm:16px; --r-lg:36px; --r-pill:999px;
+  --sh:0 10px 28px rgba(20,70,55,.1); --sh-lg:0 22px 54px rgba(20,70,55,.18);
+  --grad:radial-gradient(520px 340px at 88% 6%,rgba(46,175,139,.16),transparent 62%),radial-gradient(480px 320px at 6% 92%,rgba(255,122,89,.15),transparent 62%);
+  --f-d:"Outfit",sans-serif; --f-b:"DM Sans",sans-serif;
+  --h-w:800; --h-ls:-.035em;
+  --btn-r:999px; --btn-sh:0 8px 20px rgba(255,122,89,.34); --btn-w:600; --btn-pad:12px 26px;
+  --in-bg:#F3FAF6; --in-r:999px; --lab-tt:none; --lab-ls:.02em;
+}
+.kit[data-style="blob"] .k-card,.kit[data-style="blob"] .k-hero{
+  border-radius:58% 42% 46% 54%/38% 44% 56% 62%}
+.kit[data-style="blob"] .k-feat i,.kit[data-style="blob"] .k-av{
+  border-radius:62% 38% 44% 56%/44% 58% 42% 56%}
+</style>

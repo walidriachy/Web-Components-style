@@ -1,0 +1,634 @@
+<script>
+/* ============================================================
+   DESIGN DATABASE
+   Designs are pure data (designs.js). Nothing about a design
+   lives in CSS — the 28 stored tokens are expanded to the full
+   ~48-token contract at runtime and written as custom
+   properties onto whichever element is being rendered.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var DESIGNS = (window.DESIGNS || []).slice();
+
+  /* designs the user has forked and saved live alongside the shipped ones */
+  try {
+    var mine = JSON.parse(localStorage.getItem("db.mine") || "[]");
+    if (mine.length) DESIGNS = DESIGNS.concat(mine);
+  } catch (e) {}
+
+  /* ─────────── colour maths ─────────── */
+  function parseColor(c) {
+    if (!c) return null;
+    c = String(c).trim();
+    var m;
+    if (c[0] === "#") {
+      var h = c.slice(1);
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      if (h.length === 8) return { r:parseInt(h.slice(0,2),16), g:parseInt(h.slice(2,4),16), b:parseInt(h.slice(4,6),16), a:parseInt(h.slice(6,8),16)/255 };
+      if (h.length !== 6) return null;
+      return { r:parseInt(h.slice(0,2),16), g:parseInt(h.slice(2,4),16), b:parseInt(h.slice(4,6),16), a:1 };
+    }
+    m = c.match(/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:[\s,/]+([\d.]+))?\s*\)/i);
+    if (m) return { r:+m[1], g:+m[2], b:+m[3], a:m[4]===undefined?1:+m[4] };
+    return null;
+  }
+  function rgbaStr(c, a) {
+    var p = parseColor(c);
+    if (!p) return c;
+    return "rgba(" + Math.round(p.r) + "," + Math.round(p.g) + "," + Math.round(p.b) + "," + a + ")";
+  }
+  /* composite a possibly-translucent colour over a backdrop */
+  function flatten(fg, bg) {
+    var f = parseColor(fg), b = parseColor(bg);
+    if (!f) return b || { r:255,g:255,b:255,a:1 };
+    if (!b || f.a >= 1) return f;
+    return {
+      r: f.r * f.a + b.r * (1 - f.a),
+      g: f.g * f.a + b.g * (1 - f.a),
+      b: f.b * f.a + b.b * (1 - f.a),
+      a: 1
+    };
+  }
+  function lum(c) {
+    var s = [c.r, c.g, c.b].map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
+  }
+  function contrast(fg, bg) {
+    var f = flatten(fg, bg), b = flatten(bg, "#FFFFFF");
+    var l1 = lum(f), l2 = lum(b);
+    var hi = Math.max(l1, l2), lo = Math.min(l1, l2);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+  function grade(ratio, large) {
+    var aaa = large ? 4.5 : 7, aa = large ? 3 : 4.5;
+    return ratio >= aaa ? "aaa" : ratio >= aa ? "aa" : "fail";
+  }
+
+  /* ─────────── font stacks ─────────── */
+  var SERIF = ["Playfair Display","Libre Baskerville","Cormorant Garamond","Fraunces","EB Garamond",
+               "Bodoni Moda","Instrument Serif","Lora","Crimson Pro","Abril Fatface","Cinzel","Marcellus"];
+  var MONO  = ["IBM Plex Mono","Space Mono","VT323","Silkscreen","Press Start 2P","Major Mono Display"];
+  var CURSIVE = ["Caveat","Special Elite","Bungee","Monoton","Righteous"];
+  function stack(name) {
+    if (!name) return "Inter, system-ui, sans-serif";
+    name = String(name).trim();
+    var tail = MONO.indexOf(name) > -1 ? "ui-monospace, Menlo, monospace"
+             : SERIF.indexOf(name) > -1 ? "Georgia, 'Times New Roman', serif"
+             : CURSIVE.indexOf(name) > -1 ? "system-ui, cursive"
+             : "system-ui, -apple-system, sans-serif";
+    return '"' + name + '", ' + tail;
+  }
+
+  /* ─────────── 28 stored tokens → full contract ─────────── */
+  function expand(t) {
+    var px  = function (v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; };
+    var r   = px(t.r);
+    var dark = lum(flatten(t.bg, "#FFFFFF")) < 0.35;
+    return {
+      "--bg": t.bg,
+      "--bg-2": t.surface2,
+      "--surface": t.surface,
+      "--surface-2": t.surface2,
+      "--surface-3": t.surface3,
+      "--ink": t.ink, "--ink-2": t.ink2, "--ink-3": t.ink3,
+      "--accent": t.accent, "--on-accent": t.onAccent, "--accent-2": t.accent2,
+      "--accent-soft": rgbaStr(t.accent, dark ? 0.2 : 0.13),
+      "--ok": t.ok, "--warn": t.warn, "--err": t.err, "--info": t.accent2,
+      "--ok-soft":   rgbaStr(t.ok,   dark ? 0.18 : 0.14),
+      "--warn-soft": rgbaStr(t.warn, dark ? 0.18 : 0.15),
+      "--err-soft":  rgbaStr(t.err,  dark ? 0.18 : 0.13),
+      "--info-soft": rgbaStr(t.accent2, dark ? 0.18 : 0.13),
+      "--bw": t.bw, "--bc": t.bc, "--bstyle": "solid",
+      "--r": t.r,
+      "--r-sm": Math.max(0, Math.round(r * 0.62)) + "px",
+      "--r-lg": Math.round(r * 1.7) + "px",
+      "--r-pill": r > 0 ? "999px" : "0px",
+      "--sh": t.sh, "--sh-lg": t.shLg, "--sh-in": "none",
+      "--f-d": stack(t.fontD), "--f-b": stack(t.fontB), "--f-m": stack(t.fontM),
+      "--h-w": t.hWeight, "--h-ls": t.hTracking, "--h-tt": t.hCase, "--h-lh": "1.12",
+      "--b-ls": "0", "--lab-w": "600",
+      "--btn-r": t.btnR, "--btn-w": "600",
+      "--btn-tt": t.btnCase, "--btn-ls": t.btnCase === "uppercase" ? ".1em" : "0",
+      "--btn-sh": t.sh, "--btn-bw": px(t.bw) > 1 ? t.bw : "0px",
+      "--in-bg": t.surface, "--in-bc": t.bc,
+      "--in-r": Math.max(0, Math.round(r * 0.8)) + "px", "--in-sh": "none",
+      "--blur": t.blur || "0px",
+      "--grad": t.grad && t.grad !== "none" ? t.grad : "none",
+      "--tex": "none", "--overlay": "none",
+      /* motion — stored if the design defines it, otherwise inferred
+         from its physical character: sharp and flat implies snappy and
+         still; round and shadowed implies soft and lifting. */
+      "--ease": t.ease || (r === 0 ? "cubic-bezier(.2,0,.4,1)" : r > 18 ? "cubic-bezier(.34,1.4,.4,1)" : "cubic-bezier(.4,0,.2,1)"),
+      "--dur": t.dur || (r === 0 ? "110ms" : r > 18 ? "260ms" : "180ms"),
+      "--lift": t.lift || (t.sh === "none" ? "none" : r > 18 ? "translateY(-3px)" : "translateY(-2px)"),
+      "--press": t.press || (t.sh === "none" ? "none" : "translateY(1px)"),
+      "--hover-sh": t.shLg && t.shLg !== "none" ? t.shLg : t.sh
+    };
+  }
+
+  function motionOf(t) {
+    var r = parseFloat(t.r) || 0;
+    return t.reveal || (r === 0 && t.sh === "none" ? "fade" : r > 18 ? "scale" : "rise");
+  }
+
+  /* Structural traits change LAYOUT, not colour — density, type scale,
+     how a surface separates, how inputs and buttons are drawn, dividers,
+     alignment. Stored per design where assigned; otherwise inferred from
+     the design's own physical character so nothing renders identically. */
+  var COMPACT_FAMS = { Editor:1, Framework:1, Finance:1, Crypto:1, Speculative:1, Raw:1 };
+  var AIRY_FAMS    = { Luxury:1, Editorial:1, Print:1, Season:1, Culture:1, Material:1 };
+  var DRAMATIC_FAMS= { Editorial:1, Luxury:1, Movement:1, Decade:1, Print:1 };
+
+  function structOf(d) {
+    var s = d.struct || {};
+    var t = d.tokens, r = parseFloat(t.r) || 0, bw = parseFloat(t.bw) || 0;
+    var blur = parseFloat(t.blur) || 0, flat = t.sh === "none";
+    return {
+      density: s.density || (COMPACT_FAMS[d.family] ? "compact" : AIRY_FAMS[d.family] ? "airy" : "cozy"),
+      scale:   s.scale   || (DRAMATIC_FAMS[d.family] ? "dramatic" : COMPACT_FAMS[d.family] ? "tight" : "normal"),
+      surface: s.surface || (blur > 0 ? "glass" : flat && bw === 0 ? "flat" : flat ? "outlined" : r > 16 ? "raised" : "outlined"),
+      input:   s.input   || (r === 0 ? "sharp" : r >= 20 ? "pill" : "box"),
+      btn:     s.btn     || (r === 0 && bw >= 2 ? "hard" : flat && bw > 0 ? "outline" : "solid"),
+      divider: s.divider || (bw >= 3 ? "heavy" : bw === 0 ? "none" : "hairline"),
+      align:   s.align   || "left"
+    };
+  }
+
+  function releaseSwap(el) {
+    /* rAF alone is not enough — it is throttled in background tabs, which
+       would leave transitions permanently disabled. Belt and braces. */
+    var done = false;
+    var clear = function () { if (done) return; done = true; el.classList.remove("swapping"); };
+    if (window.requestAnimationFrame) requestAnimationFrame(function () { requestAnimationFrame(clear); });
+    setTimeout(clear, 60);
+  }
+
+  function applyTo(el, design) {
+    el.classList.add("swapping");
+    var vars = expand(design.tokens);
+    for (var k in vars) if (vars[k] != null) el.style.setProperty(k, vars[k]);
+    el.setAttribute("data-reveal", motionOf(design.tokens));
+    var st = structOf(design);
+    el.setAttribute("data-density", st.density);
+    el.setAttribute("data-scale",   st.scale);
+    el.setAttribute("data-surface", st.surface);
+    el.setAttribute("data-input",   st.input);
+    el.setAttribute("data-btn",     st.btn);
+    el.setAttribute("data-divider", st.divider);
+    el.setAttribute("data-align",   st.align);
+    releaseSwap(el);
+  }
+
+  /* ─────────── accessibility report ─────────── */
+  function audit(d) {
+    var t = d.tokens;
+    var rows = [
+      ["Body text on page",     t.ink,  t.bg,      false],
+      ["Secondary text",        t.ink2, t.bg,      false],
+      ["Muted text",            t.ink3, t.bg,      true],
+      ["Text on card",          t.ink,  t.surface, false],
+      ["Accent on page",        t.accent, t.bg,    true],
+      ["Button label on accent",t.onAccent, t.accent, false],
+      ["Success",               t.ok,   t.bg,      true],
+      ["Warning",               t.warn, t.bg,      true],
+      ["Error",                 t.err,  t.bg,      true]
+    ];
+    return rows.map(function (row) {
+      var ratio = contrast(row[1], row[2]);
+      return { label: row[0], fg: row[1], bg: row[2], ratio: ratio, grade: grade(ratio, row[3]) };
+    });
+  }
+  function overallGrade(d) {
+    var rows = audit(d);
+    var core = rows.slice(0, 2).concat([rows[5]]);   // body, secondary, button label
+    if (core.every(function (r) { return r.grade === "aaa"; })) return "aaa";
+    if (core.every(function (r) { return r.grade !== "fail"; })) return "aa";
+    return "fail";
+  }
+
+  /* ─────────── favourites ─────────── */
+  var FAVS = (function () {
+    try { return JSON.parse(localStorage.getItem("db.favs") || "[]"); } catch (e) { return []; }
+  })();
+  function saveFavs() { try { localStorage.setItem("db.favs", JSON.stringify(FAVS)); } catch (e) {} }
+  function isFav(id) { return FAVS.indexOf(id) > -1; }
+  function toggleFav(id) {
+    var i = FAVS.indexOf(id);
+    if (i > -1) FAVS.splice(i, 1); else FAVS.push(id);
+    saveFavs();
+  }
+
+  /* ─────────── DOM ─────────── */
+  var $ = function (id) { return document.getElementById(id); };
+  var sheet = $("sheet"), kit = $("kit"), q = $("q"), fams = $("fams"),
+      countEl = $("count"), emptyEl = $("empty"), loadingEl = $("loading"),
+      nmEl = $("nm"), ntEl = $("nt"), famEl = $("famtag"), a11yEl = $("a11yBody"),
+      tokEl = $("tokBody"), sortSel = $("sort"), favBtn = $("favOnly"),
+      compareWrap = $("compareWrap");
+
+  var current = 0, activeFam = "All", favOnly = false, tiles = [], enterTimer = 0;
+
+  if (!DESIGNS.length) {
+    loadingEl.textContent = "designs.js is empty or missing — the database has not been generated yet.";
+    return;
+  }
+  loadingEl.style.display = "none";
+
+  /* precompute search haystack + grade */
+  DESIGNS.forEach(function (d) {
+    d._hay = (d.id + " " + d.name + " " + d.family + " " + d.tags + " " + d.note + " " +
+              d.tokens.fontD + " " + d.tokens.fontB + " " + d.tokens.accent + " " + d.tokens.bg).toLowerCase();
+    d._grade = overallGrade(d);
+    d._dark = lum(flatten(d.tokens.bg, "#FFFFFF")) < 0.35;
+  });
+
+  /* ─────────── contact sheet ─────────── */
+  function buildSheet() {
+    var frag = document.createDocumentFragment();
+    DESIGNS.forEach(function (d, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "tile"; b.dataset.idx = i;
+      b.setAttribute("aria-label", d.name + " — " + d.family);
+      b.innerHTML =
+        '<span class="tile-face">' +
+          '<span class="tile-a11y ' + d._grade + '">' + d._grade.toUpperCase() + '</span>' +
+          '<span class="tile-aa">Aa</span>' +
+          '<span class="tile-card"><span class="tile-chip">Button</span>' +
+            '<span class="tile-sw"><i></i><i></i><i></i></span></span>' +
+        '</span>' +
+        '<span class="tile-meta"><span class="tm">' +
+          '<span class="tile-name"></span><span class="tile-fam"></span>' +
+        '</span><span class="tile-star" role="button" aria-label="Save">&#9733;</span></span>';
+
+      var face = b.querySelector(".tile-face");
+      var t = d.tokens;
+      applyTo(face, d);
+      face.style.background = t.bg;
+      if (t.grad && t.grad !== "none") face.style.backgroundImage = t.grad;
+      face.style.color = t.ink;
+      face.style.fontFamily = stack(t.fontB);
+      var aa = b.querySelector(".tile-aa");
+      aa.style.fontFamily = stack(t.fontD);
+      aa.style.fontWeight = t.hWeight;
+      aa.style.letterSpacing = t.hTracking;
+      aa.style.textTransform = t.hCase;
+      aa.style.color = t.ink;
+      var card = b.querySelector(".tile-card");
+      card.style.cssText += ";background:" + t.surface + ";border:" + t.bw + " solid " + t.bc +
+        ";border-radius:" + t.r + ";box-shadow:" + t.sh + ";";
+      if (t.blur && t.blur !== "0px") { card.style.backdropFilter = "blur(" + t.blur + ")"; card.style.webkitBackdropFilter = "blur(" + t.blur + ")"; }
+      var chip = b.querySelector(".tile-chip");
+      chip.style.cssText += ";background:" + t.accent + ";color:" + t.onAccent +
+        ";border-radius:" + t.btnR + ";text-transform:" + t.btnCase + ";font-family:" + stack(t.fontB) + ";";
+      var sw = b.querySelectorAll(".tile-sw i");
+      sw[0].style.background = t.accent; sw[1].style.background = t.ok; sw[2].style.background = t.ink3;
+
+      b.querySelector(".tile-name").textContent = d.name;
+      b.querySelector(".tile-fam").textContent = d.family;
+      var star = b.querySelector(".tile-star");
+      if (isFav(d.id)) star.classList.add("on");
+
+      star.addEventListener("click", function (e) {
+        e.stopPropagation();
+        toggleFav(d.id);
+        star.classList.toggle("on");
+        if (favOnly) apply();
+      });
+      b.addEventListener("click", function () { select(i, true); });
+      frag.appendChild(b);
+    });
+    sheet.appendChild(frag);
+    tiles = Array.prototype.slice.call(sheet.children);
+  }
+
+  /* ─────────── family chips ─────────── */
+  function buildFams() {
+    var seen = {}, list = ["All"];
+    DESIGNS.forEach(function (d) { if (!seen[d.family]) { seen[d.family] = 1; list.push(d.family); } });
+    list.forEach(function (f) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "db-btn"; b.textContent = f;
+      b.setAttribute("aria-pressed", f === "All" ? "true" : "false");
+      b.addEventListener("click", function () {
+        activeFam = f;
+        Array.prototype.forEach.call(fams.children, function (c) {
+          c.setAttribute("aria-pressed", c === b ? "true" : "false");
+        });
+        apply();
+      });
+      fams.appendChild(b);
+    });
+  }
+
+  /* ─────────── filter / sort ─────────── */
+  function apply() {
+    var term = q.value.trim().toLowerCase();
+    var shown = 0;
+    tiles.forEach(function (t) {
+      var d = DESIGNS[+t.dataset.idx];
+      var hit = (!term || d._hay.indexOf(term) !== -1) &&
+                (activeFam === "All" || d.family === activeFam) &&
+                (!favOnly || isFav(d.id));
+      t.style.display = hit ? "" : "none";
+      if (hit) shown++;
+    });
+    countEl.textContent = shown === DESIGNS.length
+      ? DESIGNS.length + " designs"
+      : shown + " of " + DESIGNS.length;
+    emptyEl.style.display = shown === 0 ? "block" : "none";
+  }
+
+  function sortSheet() {
+    var mode = sortSel.value;
+    var order = DESIGNS.map(function (d, i) { return i; });
+    if (mode === "name")     order.sort(function (a, b) { return DESIGNS[a].name.localeCompare(DESIGNS[b].name); });
+    else if (mode === "family") order.sort(function (a, b) { return DESIGNS[a].family.localeCompare(DESIGNS[b].family) || DESIGNS[a].name.localeCompare(DESIGNS[b].name); });
+    else if (mode === "contrast") order.sort(function (a, b) {
+      return contrast(DESIGNS[b].tokens.ink, DESIGNS[b].tokens.bg) - contrast(DESIGNS[a].tokens.ink, DESIGNS[a].tokens.bg);
+    });
+    else if (mode === "light")  order.sort(function (a, b) { return (DESIGNS[a]._dark?1:0) - (DESIGNS[b]._dark?1:0); });
+    else if (mode === "dark")   order.sort(function (a, b) { return (DESIGNS[b]._dark?1:0) - (DESIGNS[a]._dark?1:0); });
+    order.forEach(function (idx) {
+      var tile = tiles.filter(function (t) { return +t.dataset.idx === idx; })[0];
+      if (tile) sheet.appendChild(tile);
+    });
+  }
+
+  /* ─────────── selection ─────────── */
+  function select(i, scroll) {
+    current = (i + DESIGNS.length) % DESIGNS.length;
+    var d = DESIGNS[current];
+    applyTo(kit, d);
+    /* Replay the entrance so the design's motion character is visible
+       the moment it is selected. The class is always removed again:
+       the keyframes use fill-mode "both", so if the animation were ever
+       paused or throttled (backgrounded tab, reduced-motion, slow frame
+       loop) a lingering .enter would hold the from-state and leave the
+       whole kit stuck at opacity 0. */
+    clearTimeout(enterTimer);
+    kit.classList.remove("enter");
+    void kit.offsetWidth;                 // force reflow to restart it
+    kit.classList.add("enter");
+    enterTimer = setTimeout(function () { kit.classList.remove("enter"); }, 1400);
+    nmEl.textContent = d.name;
+    ntEl.textContent = d.note;
+    famEl.textContent = d.family.toUpperCase();
+    tiles.forEach(function (t) { t.setAttribute("aria-current", +t.dataset.idx === current ? "true" : "false"); });
+    renderAudit(d);
+    renderTokens(d);
+    try { history.replaceState(null, "", "#" + d.id); } catch (e) {}
+    if (scroll) {
+      var bar = document.querySelector(".db-stagebar");
+      if (bar) window.scrollTo({ top: bar.getBoundingClientRect().top + window.scrollY - 96, behavior: "smooth" });
+    }
+  }
+
+  function renderAudit(d) {
+    var rows = audit(d);
+    a11yEl.innerHTML = rows.map(function (r) {
+      return '<div class="a11y-row">' +
+        '<span class="a11y-swatch" style="background:' + r.bg + ';color:' + r.fg + '">Aa</span>' +
+        '<span class="lbl">' + r.label + '</span>' +
+        '<span class="ratio">' + r.ratio.toFixed(2) + '</span>' +
+        '<span class="badge ' + r.grade + '">' + (r.grade === "fail" ? "FAIL" : r.grade.toUpperCase()) + '</span>' +
+      '</div>';
+    }).join("");
+  }
+
+  function renderTokens(d) {
+    var vars = expand(d.tokens), out = "";
+    for (var k in vars) {
+      var v = String(vars[k]);
+      if (v.length > 78) v = v.slice(0, 75) + "…";
+      out += '<span class="tk">' + k + '</span>: ' + v.replace(/</g, "&lt;") + ";\n";
+    }
+    tokEl.innerHTML = out;
+  }
+
+  /* ─────────── export ─────────── */
+  function download(name, text, mime) {
+    try {
+      var blob = new Blob([text], { type: mime || "text/plain" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 400);
+      return true;
+    } catch (e) { return false; }
+  }
+  function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+
+  function exportAs(kind) {
+    var d = DESIGNS[current], t = d.tokens, vars = expand(t), name = slug(d.name), text, file, mime = "text/plain";
+    if (kind === "css") {
+      text = "/* " + d.name + " — " + d.note + " */\n:root {\n";
+      for (var k in vars) text += "  " + k + ": " + vars[k] + ";\n";
+      text += "}\n"; file = name + ".css"; mime = "text/css";
+    } else if (kind === "json") {
+      text = JSON.stringify({ id: d.id, name: d.name, family: d.family, note: d.note, tags: d.tags, tokens: t }, null, 2);
+      file = name + ".json"; mime = "application/json";
+    } else if (kind === "scss") {
+      text = "// " + d.name + "\n";
+      for (var k2 in vars) text += "$" + k2.replace(/^--/, "").replace(/-/g, "-") + ": " + vars[k2] + ";\n";
+      file = "_" + name + ".scss";
+    } else if (kind === "tw") {
+      text = "// tailwind.config.js — " + d.name + "\nmodule.exports = {\n  theme: {\n    extend: {\n" +
+        "      colors: {\n" +
+        "        bg: '" + t.bg + "',\n        surface: '" + t.surface + "',\n" +
+        "        ink: { DEFAULT: '" + t.ink + "', 2: '" + t.ink2 + "', 3: '" + t.ink3 + "' },\n" +
+        "        accent: { DEFAULT: '" + t.accent + "', fg: '" + t.onAccent + "', 2: '" + t.accent2 + "' },\n" +
+        "        ok: '" + t.ok + "',\n        warn: '" + t.warn + "',\n        err: '" + t.err + "',\n" +
+        "        line: '" + t.bc + "'\n      },\n" +
+        "      borderRadius: { DEFAULT: '" + t.r + "', btn: '" + t.btnR + "' },\n" +
+        "      boxShadow: { DEFAULT: '" + t.sh + "', lg: '" + t.shLg + "' },\n" +
+        "      fontFamily: {\n        display: [" + JSON.stringify(t.fontD) + ", 'sans-serif'],\n" +
+        "        body: [" + JSON.stringify(t.fontB) + ", 'sans-serif'],\n" +
+        "        mono: [" + JSON.stringify(t.fontM) + ", 'monospace']\n      }\n    }\n  }\n};\n";
+      file = "tailwind." + name + ".js"; mime = "text/javascript";
+    } else if (kind === "all") {
+      text = JSON.stringify(DESIGNS.map(function (x) {
+        return { id: x.id, name: x.name, family: x.family, tags: x.tags, note: x.note, tokens: x.tokens };
+      }), null, 2);
+      file = "design-database.json"; mime = "application/json";
+    } else if (kind === "favs") {
+      var picked = DESIGNS.filter(function (x) { return isFav(x.id); });
+      if (!picked.length) { alert("No designs saved yet — tap the star on any tile."); return; }
+      text = JSON.stringify(picked.map(function (x) {
+        return { id: x.id, name: x.name, family: x.family, tags: x.tags, note: x.note, tokens: x.tokens };
+      }), null, 2);
+      file = "my-shortlist.json"; mime = "application/json";
+    }
+    if (!download(file, text, mime)) {
+      navigator.clipboard && navigator.clipboard.writeText(text);
+      alert("Download blocked — copied to clipboard instead.");
+    }
+  }
+
+  /* ─────────── compare ─────────── */
+  var compareOn = false;
+  function buildCompare() {
+    ["cmpA", "cmpB"].forEach(function (id) {
+      var host = $(id);
+      if (host.children.length) return;
+      var clone = kit.cloneNode(true);
+      clone.removeAttribute("id");
+      clone.querySelectorAll("[id]").forEach(function (n) { n.removeAttribute("id"); });
+      /* keep the first four groups — enough to judge a design side by side */
+      var groups = clone.querySelectorAll(".k-group");
+      Array.prototype.slice.call(groups, 4).forEach(function (g) { g.remove(); });
+      host.appendChild(clone);
+    });
+  }
+  function paintCompare() {
+    var a = DESIGNS[current];
+    var bIdx = (current + 1) % DESIGNS.length;
+    var sel = $("cmpBsel");
+    if (sel.value) {
+      var found = DESIGNS.map(function (d, i) { return d.id === sel.value ? i : -1; }).filter(function (i) { return i > -1; })[0];
+      if (found !== undefined) bIdx = found;
+    }
+    var b = DESIGNS[bIdx];
+    applyTo($("cmpA").firstChild, a);
+    applyTo($("cmpB").firstChild, b);
+    $("cmpAname").textContent = a.name;
+    $("cmpBname").textContent = b.name;
+  }
+
+  /* ─────────── wiring ─────────── */
+  buildFams();
+  buildSheet();
+  apply();
+
+  q.addEventListener("input", apply);
+  sortSel.addEventListener("change", sortSheet);
+  favBtn.addEventListener("click", function () {
+    favOnly = !favOnly;
+    favBtn.setAttribute("aria-pressed", favOnly ? "true" : "false");
+    favBtn.textContent = favOnly ? "★ Saved only" : "★ Saved";
+    apply();
+  });
+  $("prev").addEventListener("click", function () { select(current - 1, false); });
+  $("next").addEventListener("click", function () { select(current + 1, false); });
+  $("rand").addEventListener("click", function () {
+    var vis = tiles.filter(function (t) { return t.style.display !== "none"; });
+    if (!vis.length) return;
+    select(+vis[Math.floor(Math.random() * vis.length)].dataset.idx, true);
+  });
+  $("favStage").addEventListener("click", function () {
+    var d = DESIGNS[current];
+    toggleFav(d.id);
+    var tile = tiles.filter(function (t) { return +t.dataset.idx === current; })[0];
+    if (tile) tile.querySelector(".tile-star").classList.toggle("on", isFav(d.id));
+    this.textContent = isFav(d.id) ? "★ Saved" : "☆ Save";
+  });
+  ["css","json","scss","tw","all","favs"].forEach(function (k) {
+    var b = $("ex-" + k);
+    if (b) b.addEventListener("click", function () { exportAs(k); });
+  });
+  ["product","dash","both"].forEach(function (v) {
+    var b = $("kv-" + v);
+    if (!b) return;
+    b.addEventListener("click", function () {
+      kit.setAttribute("data-kitview", v);
+      ["product","dash","both"].forEach(function (x) { $("kv-" + x).classList.toggle("on", x === v); });
+      if (window.ScrollTriggerNoop) {}
+    });
+  });
+
+  ["full","tablet","narrow"].forEach(function (w) {
+    $("vw-" + w).addEventListener("click", function () {
+      var stage = document.querySelector(".db-stage");
+      stage.classList.remove("narrow", "tablet");
+      if (w !== "full") stage.classList.add(w);
+      ["full","tablet","narrow"].forEach(function (x) { $("vw-" + x).classList.toggle("on", x === w); });
+    });
+  });
+  $("cmpToggle").addEventListener("click", function () {
+    compareOn = !compareOn;
+    compareWrap.hidden = !compareOn;
+    this.setAttribute("aria-pressed", compareOn ? "true" : "false");
+    if (compareOn) {
+      if (!$("cmpBsel").options.length) {
+        $("cmpBsel").innerHTML = DESIGNS.map(function (d) {
+          return '<option value="' + d.id + '">' + d.name + '</option>';
+        }).join("");
+        $("cmpBsel").selectedIndex = Math.min(1, DESIGNS.length - 1);
+      }
+      buildCompare(); paintCompare();
+    }
+  });
+  $("cmpBsel").addEventListener("change", paintCompare);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target === q || e.target === sortSel || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "ArrowRight") { select(current + 1, false); e.preventDefault(); }
+    if (e.key === "ArrowLeft")  { select(current - 1, false); e.preventDefault(); }
+    if (e.key === "/") { q.focus(); e.preventDefault(); }
+    if (e.key.toLowerCase() === "s") $("favStage").click();
+  });
+
+  /* deep link */
+  var start = 0;
+  if (location.hash) {
+    var want = location.hash.slice(1);
+    DESIGNS.forEach(function (d, i) { if (d.id === want) start = i; });
+  }
+  select(start, false);
+  $("favStage").textContent = isFav(DESIGNS[start].id) ? "★ Saved" : "☆ Save";
+
+  /* ---- API for the style editor ---- */
+  window.__DB = {
+    designs: DESIGNS,
+    applyTo: applyTo,
+    expand: expand,
+    structOf: structOf,
+    audit: audit,
+    stack: stack,
+    kit: kit,
+    current: function () { return DESIGNS[current]; },
+    select: select,
+    indexOf: function (id) { for (var i = 0; i < DESIGNS.length; i++) if (DESIGNS[i].id === id) return i; return -1; },
+    saveMine: function (d) {
+      var mine = [];
+      try { mine = JSON.parse(localStorage.getItem("db.mine") || "[]"); } catch (e) {}
+      var at = -1;
+      for (var i = 0; i < mine.length; i++) if (mine[i].id === d.id) at = i;
+      if (at > -1) mine[at] = d; else mine.push(d);
+      try { localStorage.setItem("db.mine", JSON.stringify(mine)); } catch (e) { return false; }
+      var ex = this.indexOf(d.id);
+      if (ex > -1) DESIGNS[ex] = d; else DESIGNS.push(d);
+      this.rebuild();
+      return true;
+    },
+    deleteMine: function (id) {
+      var mine = [];
+      try { mine = JSON.parse(localStorage.getItem("db.mine") || "[]"); } catch (e) {}
+      mine = mine.filter(function (m) { return m.id !== id; });
+      try { localStorage.setItem("db.mine", JSON.stringify(mine)); } catch (e) {}
+      var ex = this.indexOf(id);
+      if (ex > -1) DESIGNS.splice(ex, 1);
+      this.rebuild();
+    },
+    rebuild: function () {
+      sheet.innerHTML = ""; fams.innerHTML = "";
+      buildFams(); buildSheet(); apply();
+      $("stat-total").textContent = DESIGNS.length;
+      select(Math.min(current, DESIGNS.length - 1), false);
+    }
+  };
+
+  /* header stats */
+  var darkCount = DESIGNS.filter(function (d) { return d._dark; }).length;
+  var famCount = Object.keys(DESIGNS.reduce(function (a, d) { a[d.family] = 1; return a; }, {})).length;
+  var aaaCount = DESIGNS.filter(function (d) { return d._grade === "aaa"; }).length;
+  $("stat-total").textContent = DESIGNS.length;
+  $("stat-fams").textContent = famCount;
+  $("stat-dark").textContent = darkCount;
+  $("stat-aaa").textContent = aaaCount;
+})();
+</script>

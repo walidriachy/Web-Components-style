@@ -1,0 +1,168 @@
+  <!-- ══════════ 19 · EXTREME COMPONENTS ══════════ -->
+  <section class="scene" id="components">
+    <div class="head">
+      <p class="eyebrow">19 — Interface</p>
+      <h2>Extreme components</h2>
+      <p class="lede">The same craft applied to things you actually ship. Every control below is real and interactive — gooey SVG filters, path morphing, FLIP transitions, spring physics, canvas particle bursts. Touch all of them.</p>
+    </div>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="9" result="b"/>
+        <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="g"/>
+        <feBlend in="SourceGraphic" in2="g"/></filter>
+      <filter id="goo2"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/>
+        <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8"/></filter>
+    </svg>
+
+    <!-- ─── buttons ─── -->
+    <p class="xlabel">Buttons</p>
+    <div class="xgrid">
+
+      <div class="xcell"><span class="xname">Gooey magnetic</span>
+        <div class="goo-host" id="gooHost">
+          <span class="goo-blob"></span><span class="goo-blob b2"></span>
+          <button class="xbtn goo-btn" id="gooBtn">Attract</button>
+        </div>
+      </div>
+
+      <div class="xcell"><span class="xname">Liquid fill</span>
+        <button class="xbtn liquid"><span class="lq"><svg viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M0,60 Q25,50 50,60 T100,60 T150,60 T200,60 L200,80 L0,80Z"/></svg></span><span class="lb">Submerge</span></button>
+      </div>
+
+      <div class="xcell"><span class="xname">Particle burst</span>
+        <div class="burst-host"><canvas class="burst-cv"></canvas><button class="xbtn burst" data-burst>Detonate</button></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Border draw</span>
+        <button class="xbtn draw"><svg class="dr" viewBox="0 0 200 56" preserveAspectRatio="none"><rect x="1" y="1" width="198" height="54" rx="9"/></svg><span>Trace</span></button>
+      </div>
+
+      <div class="xcell"><span class="xname">Text scramble</span>
+        <button class="xbtn scramble" data-scramble="DECRYPT">DECRYPT</button>
+      </div>
+
+      <div class="xcell"><span class="xname">Icon morph</span>
+        <button class="xbtn icon-morph" id="morphBtn" aria-label="Play or pause">
+          <svg viewBox="0 0 24 24"><path id="morphPath" d="M8,5 L8,19 L19,12 Z"/></svg>
+        </button>
+      </div>
+
+      <div class="xcell"><span class="xname">Depth press</span>
+        <button class="xbtn press">Push</button>
+      </div>
+
+      <div class="xcell"><span class="xname">Glitch</span>
+        <button class="xbtn glitchbtn" data-txt="CORRUPT">CORRUPT</button>
+      </div>
+
+      <div class="xcell"><span class="xname">Async → success</span>
+        <button class="xbtn async" id="asyncBtn">
+          <span class="txt">Deploy</span>
+          <span class="spin"></span>
+          <svg class="tick" viewBox="0 0 24 24"><path d="M4,12 L10,18 L20,6"/></svg>
+        </button>
+      </div>
+
+      <div class="xcell"><span class="xname">Shine sweep</span>
+        <button class="xbtn shine">Polish</button>
+      </div>
+    </div>
+
+    <!-- ─── inputs ─── -->
+    <p class="xlabel">Inputs</p>
+    <div class="xgrid">
+
+      <div class="xcell"><span class="xname">Draw underline</span>
+        <label class="xfield"><input type="text" placeholder=" " id="ff1"><span class="fl">Full name</span><i class="ul"></i></label>
+      </div>
+
+      <div class="xcell"><span class="xname">OTP · shake on error</span>
+        <div class="xotp" id="xotp" tabindex="0"><span>·</span><span>·</span><span>·</span><span>·</span></div>
+        <small class="xhint">Type 4 digits. Anything but 2026 shakes.</small>
+      </div>
+
+      <div class="xcell"><span class="xname">Expanding search</span>
+        <div class="xsearch" id="xsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5,16.5 L21,21"/></svg><input type="text" placeholder="Search…"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Magnetic slider</span>
+        <div class="xslider" id="xslider"><i class="fill"></i><b class="knob"><em class="bub">62</em></b></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Elastic toggle</span>
+        <div class="xtoggle" id="xtoggle" role="switch" aria-checked="false"><i></i></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Path-draw check</span>
+        <div class="xchecks">
+          <label class="xcheck"><input type="checkbox" checked><svg viewBox="0 0 24 24"><path d="M4,12 L10,18 L20,6"/></svg><span>Verified</span></label>
+          <label class="xcheck"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M4,12 L10,18 L20,6"/></svg><span>Archived</span></label>
+        </div>
+      </div>
+
+      <div class="xcell"><span class="xname">Liquid segment</span>
+        <div class="xseg" id="xseg"><i class="ind"></i><span class="on">Day</span><span>Week</span><span>Month</span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Pop-in tags</span>
+        <div class="xtags" id="xtags"><span class="tg">design<b>×</b></span><span class="tg">motion<b>×</b></span><input placeholder="add…"></div>
+      </div>
+    </div>
+
+    <!-- ─── navigation ─── -->
+    <p class="xlabel">Navigation</p>
+    <div class="xgrid">
+
+      <div class="xcell wide"><span class="xname">Morphing tab indicator</span>
+        <div class="xtabs" id="xtabs"><i class="ind"></i><span class="on">Overview</span><span>Activity</span><span>Members</span><span>Settings</span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Magnetic dock</span>
+        <div class="xdock" id="xdock"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Stagger menu</span>
+        <div class="xmenu-host"><button class="xbtn sm" id="menuBtn">Open menu</button>
+          <div class="xmenu" id="xmenu"><a href="#0">Duplicate</a><a href="#0">Rename</a><a href="#0">Move to…</a><a href="#0">Export</a><a href="#0">Delete</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── feedback ─── -->
+    <p class="xlabel">Feedback</p>
+    <div class="xgrid">
+
+      <div class="xcell"><span class="xname">Toast stack</span>
+        <button class="xbtn sm" id="toastBtn">Fire a toast</button>
+        <div class="xtoasts" id="xtoasts"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Liquid progress</span>
+        <div class="xprog"><svg viewBox="0 0 240 44" preserveAspectRatio="none"><defs><clipPath id="pclip"><rect id="prect" x="0" y="0" width="0" height="44"/></clipPath></defs><rect x="0" y="0" width="240" height="44" class="pbg"/><g clip-path="url(#pclip)"><path id="pwave" class="pw" d=""/></g></svg><span class="pv" id="pval">0%</span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Odometer</span>
+        <div class="xodo" id="xodo"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Exotic loaders</span>
+        <div class="xload"><span class="l1"></span><span class="l2"><i></i><i></i><i></i></span><span class="l3"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/></svg></span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Shimmer skeleton</span>
+        <div class="xskel"><i style="width:72%"></i><i style="width:100%"></i><i style="width:44%"></i></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Spotlight card</span>
+        <div class="xspot" id="xspot"><div class="sp"></div><b>Hover me</b><small>A radial light tracks the pointer and the border lights with it.</small></div>
+      </div>
+    </div>
+
+    <!-- ─── FLIP ─── -->
+    <p class="xlabel">Layout transition</p>
+    <div class="xgrid">
+      <div class="xcell wide"><span class="xname">FLIP expand — click a tile</span>
+        <div class="xflip" id="xflip"></div>
+      </div>
+    </div>
+  </section>

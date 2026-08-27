@@ -1,0 +1,68 @@
+<div class="db">
+
+  <header class="db-head">
+    <p class="db-eyebrow">Design database</p>
+    <h1>A searchable library of design languages, applied to real UI.</h1>
+    <p>Every entry is a set of design tokens — colour, type, radius, border, shadow — stored as data, not code. Pick one and the full sixty-component kit below redraws in it instantly. Filter, compare two side by side, check the contrast, star the ones you like, and export any of them as CSS, SCSS, JSON or a Tailwind config.</p>
+    <div class="db-facts">
+      <span><b id="stat-total">—</b> designs</span>
+      <span><b id="stat-fams">—</b> families</span>
+      <span><b id="stat-dark">—</b> dark</span>
+      <span><b id="stat-aaa">—</b> pass AAA</span>
+      <span>60 components</span>
+      <span>28 stored tokens &rarr; 48 applied</span>
+    </div>
+  </header>
+
+  <div class="db-bar">
+    <div class="db-row">
+      <input id="q" class="db-in" type="search" placeholder="Search name, family, tag, font or hex — press / to focus" aria-label="Search designs">
+      <select id="sort" class="db-btn" aria-label="Sort">
+        <option value="default">Sort: database order</option>
+        <option value="name">Sort: name</option>
+        <option value="family">Sort: family</option>
+        <option value="contrast">Sort: contrast, high first</option>
+        <option value="light">Sort: light first</option>
+        <option value="dark">Sort: dark first</option>
+      </select>
+      <button class="db-btn" id="favOnly" type="button" aria-pressed="false">&#9733; Saved</button>
+      <button class="db-btn" id="rand" type="button">Random</button>
+      <span class="db-count" id="count">—</span>
+    </div>
+    <div class="db-row" id="fams" role="group" aria-label="Filter by family"></div>
+  </div>
+
+  <p class="db-loading" id="loading">Loading the database&hellip;</p>
+  <div class="db-sheet" id="sheet"></div>
+  <p class="db-empty" id="empty">Nothing matches that filter.</p>
+
+  <section class="db-sec">
+    <div class="db-sec-h">
+      <div>
+        <h2>The stage</h2>
+        <p>Sixty components rendered in the selected design. Arrow keys step through the database, <b>S</b> saves.</p>
+      </div>
+    </div>
+
+    <div class="db-stagebar">
+      <div class="id">
+        <span class="nm" id="nm">&mdash;</span>
+        <span class="nt" id="nt">&mdash;</span>
+      </div>
+      <span class="db-tag" id="famtag">&mdash;</span>
+      <div class="sp">
+        <button class="db-btn" id="favStage" type="button">&#9734; Save</button>
+        <button class="db-btn on" id="kv-product" type="button">Product</button>
+        <button class="db-btn" id="kv-dash" type="button">Dashboard</button>
+        <button class="db-btn" id="kv-both" type="button">Both</button>
+        <button class="db-btn on" id="vw-full" type="button">Full</button>
+        <button class="db-btn" id="vw-tablet" type="button">Tablet</button>
+        <button class="db-btn" id="vw-narrow" type="button">Phone</button>
+        <button class="db-btn" id="cmpToggle" type="button" aria-pressed="false">Compare</button>
+        <button class="db-btn" id="prev" type="button">&larr;</button>
+        <button class="db-btn" id="next" type="button">&rarr;</button>
+      </div>
+    </div>
+
+    <div class="db-stage">
+      <div class="kit" id="kit" data-kitview="product">

@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scroll Lab — Linear</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* ── Linear tokens, lifted straight from the atlas ── */
+:root{
+  --bg:#08090A; --bg-2:#0D0E10; --surface:#101113; --surface-2:#16181A; --surface-3:#1F2124;
+  --ink:#F7F8F8; --ink-2:#8A8F98; --ink-3:#62666D;
+  --accent:#5E6AD2; --accent-2:#7B85E8; --accent-soft:rgba(94,106,210,.16);
+  --ok:#4CB782; --warn:#F2C94C; --err:#EB5757;
+  --bc:#1F2124; --r:8px; --r-lg:12px;
+  --f:"Inter",-apple-system,system-ui,sans-serif;
+  --m:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;}
+html{scrollbar-color:var(--surface-3) var(--bg);}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--f); font-size:14px; line-height:1.62;
+  letter-spacing:-.011em; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-.035em; line-height:1.06; text-wrap:balance;}
+h1{font-size:clamp(40px,7vw,78px);}
+h2{font-size:clamp(26px,3.6vw,40px);}
+h3{font-size:17px; letter-spacing:-.02em;}
+p{margin:0; color:var(--ink-2);}
+a{color:var(--accent-2);}
+
+.wrap{max-width:1180px; margin:0 auto; padding:0 26px;}
+.eyebrow{
+  font-family:var(--m); font-size:10.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent-2);
+}
+.lede{font-size:clamp(15px,1.8vw,17.5px); color:var(--ink-2); max-width:60ch;}
+
+/* ── scroll progress ── */
+#bar{
+  position:fixed; top:0; left:0; height:2px; width:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  transform:scaleX(0); transform-origin:0 50%; z-index:100;
+}
+
+/* ── hero ── */
+.hero{
+  min-height:100svh; display:flex; flex-direction:column; justify-content:center;
+  gap:26px; position:relative; padding:100px 0 60px; overflow:hidden;
+}
+.glow{
+  position:absolute; inset:-30% -10% auto -10%; height:80%;
+  background:radial-gradient(620px 380px at 22% 20%,rgba(94,106,210,.26),transparent 62%),
+             radial-gradient(560px 340px at 82% 40%,rgba(123,133,232,.16),transparent 60%);
+  pointer-events:none; z-index:0;
+}
+.hero > *{position:relative; z-index:1;}
+.hero .cta{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+
+/* word-split machinery */
+.split .w{display:inline-block; overflow:hidden; vertical-align:top;}
+.split .wi{display:inline-block; will-change:transform;}
+
+.btn{
+  font:inherit; font-size:13.5px; font-weight:500; cursor:pointer;
+  padding:10px 18px; border-radius:6px; border:1px solid transparent;
+  background:var(--accent); color:#fff; display:inline-flex; align-items:center; gap:8px;
+  transition:background .18s ease;
+}
+.btn:hover{background:var(--accent-2);}
+.btn.ghost{background:transparent; border-color:var(--bc); color:var(--ink);}
+.btn.ghost:hover{border-color:var(--ink-3); background:var(--surface);}
+.magnetic{will-change:transform;}
+
+.scrollcue{
+  display:flex; align-items:center; gap:9px;
+  font-family:var(--m); font-size:10.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.scrollcue i{
+  width:1px; height:26px; background:linear-gradient(var(--ink-3),transparent);
+  display:block; font-style:normal;
+}
+
+/* ── sections ── */
+section.demo{padding:104px 0; border-top:1px solid var(--bc);}
+.dhead{display:flex; flex-direction:column; gap:12px; margin-bottom:34px; max-width:62ch;}
+.dgrid{display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start;}
+@media (max-width:900px){ .dgrid{grid-template-columns:1fr;} }
+
+.stage{
+  background:var(--surface); border:1px solid var(--bc); border-radius:var(--r-lg);
+  padding:24px; min-height:260px; position:relative; overflow:hidden;
+}
+pre{
+  margin:0; background:var(--bg-2); border:1px solid var(--bc); border-radius:var(--r-lg);
+  padding:20px; overflow-x:auto; font-family:var(--m); font-size:11.5px;
+  line-height:1.78; color:var(--ink-2); tab-size:2;
+}
+.k{color:#C792EA;} .s{color:#7DD3A8;} .f{color:#82AAFF;} .n{color:#E0AE6A;} .c{color:var(--ink-3); font-style:italic;}
+
+.card{
+  background:var(--surface-2); border:1px solid var(--bc); border-radius:var(--r);
+  padding:16px; display:flex; flex-direction:column; gap:7px;
+}
+.card b{font-size:13.5px; font-weight:600;}
+.card span{font-size:12.5px; color:var(--ink-3);}
+.rev{display:grid; grid-template-columns:1fr 1fr; gap:11px;}
+
+/* scrub */
+.scrubwrap{display:flex; flex-direction:column; gap:16px; align-items:center; justify-content:center; height:100%;}
+.dial{
+  width:150px; height:150px; border-radius:50%;
+  background:conic-gradient(var(--accent) 0turn, var(--surface-3) 0turn);
+  display:grid; place-items:center; position:relative;
+}
+.dial::after{
+  content:""; position:absolute; inset:13px; border-radius:50%; background:var(--surface);
+}
+.dial b{
+  position:relative; z-index:1; font-family:var(--m);
+  font-size:26px; font-variant-numeric:tabular-nums;
+}
+
+/* pin */
+.pinouter{height:280vh; position:relative;}
+.pinner{
+  height:100svh; display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+}
+.panel{
+  position:absolute; width:min(560px,86vw); text-align:center;
+  display:flex; flex-direction:column; gap:14px; align-items:center;
+}
+
+/* horizontal */
+.htrack{display:flex; gap:22px; will-change:transform; padding-left:26px;}
+.hpanel{
+  flex:0 0 min(420px,80vw); height:320px; border-radius:var(--r-lg);
+  border:1px solid var(--bc); background:var(--surface);
+  padding:26px; display:flex; flex-direction:column; justify-content:space-between;
+}
+.hpanel .num{font-family:var(--m); font-size:11px; color:var(--accent-2); letter-spacing:.14em;}
+.hsec{overflow:hidden;}
+
+/* parallax */
+.plx{position:relative; height:340px; border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--bc); background:var(--bg-2);}
+.plx div{position:absolute; border-radius:50%; will-change:transform;}
+.p1{width:230px; height:230px; left:6%;  top:24%; background:radial-gradient(circle at 30% 30%,rgba(94,106,210,.9),rgba(94,106,210,.05));}
+.p2{width:150px; height:150px; left:44%; top:12%; background:radial-gradient(circle at 30% 30%,rgba(123,133,232,.8),rgba(123,133,232,.04));}
+.p3{width:100px; height:100px; left:74%; top:46%; background:radial-gradient(circle at 30% 30%,rgba(76,183,130,.75),rgba(76,183,130,.04));}
+.plx .cap{
+  position:absolute; inset:auto 0 0 0; padding:20px; background:linear-gradient(transparent,var(--bg-2));
+  border-radius:0; font-family:var(--m); font-size:11px; color:var(--ink-3); letter-spacing:.1em; text-transform:uppercase;
+}
+
+/* counters */
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:14px;}
+.stat{background:var(--surface-2); border:1px solid var(--bc); border-radius:var(--r); padding:18px;}
+.stat .v{font-size:32px; font-weight:600; letter-spacing:-.04em; font-variant-numeric:tabular-nums; line-height:1.05;}
+.stat .l{font-family:var(--m); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin-top:5px;}
+
+/* stack list */
+.stack{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px;}
+.tool{background:var(--surface); border:1px solid var(--bc); border-radius:var(--r); padding:18px; display:flex; flex-direction:column; gap:6px;}
+.tool .nm{font-family:var(--m); font-size:12.5px; color:var(--accent-2);}
+.tool p{font-size:12.5px;}
+
+footer{padding:72px 0 100px; border-top:1px solid var(--bc); color:var(--ink-3); font-size:12px; font-family:var(--m); line-height:1.9;}
+
+.warn{
+  display:none; margin:0 0 24px; padding:12px 16px; border-radius:var(--r);
+  background:rgba(242,201,76,.1); border:1px solid rgba(242,201,76,.3);
+  color:var(--warn); font-size:12.5px; font-family:var(--m);
+}
+
+/* Nothing is hidden in CSS at all. Every start state is set in JS,
+   so a CDN failure — or a script error — leaves a fully readable
+   page rather than a blank one. */
+</style>
+</head>
+<body>
+<style>
+.xnav{position:fixed;left:12px;top:12px;z-index:400;display:flex;gap:4px;align-items:center;
+ background:rgba(10,12,18,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:5px;
+ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;}
+.xnav a{color:#8A94A6;text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap;transition:background .18s,color .18s;}
+.xnav a:hover{background:rgba(255,255,255,.09);color:#F2F4F8;}
+.xnav a[aria-current="page"]{background:#38F2E4;color:#04231F;}
+@media (max-width:640px){.xnav{font-size:9px;padding:4px;}.xnav a{padding:5px 7px;}}
+</style>
+<nav class="xnav" aria-label="Pages">
+ <a href="library.html">Components</a>
+ <a href="database.html">580 Designs</a>
+ <a href="extreme.html">Extreme</a>
+ <a href="scroll-lab.html" aria-current="page">Scroll Lab</a>
+ <a href="index.html">Atlas</a>
+</nav>
+
+
+<div id="bar"></div>
+
+<div class="wrap">
+
+  <!-- ══════════ HERO ══════════ -->
+  <header class="hero">
+    <div class="glow"></div>
+    <p class="eyebrow fade">Scroll Lab · built on the Linear style</p>
+    <h1 class="split" id="headline">The techniques behind every scroll site you have ever envied.</h1>
+    <p class="lede fade">Nine effects, each running live on the left with the exact GSAP that drives it on the right. Smooth scroll is Lenis. Everything else is GSAP and ScrollTrigger — the same two libraries behind most award-winning sites.</p>
+    <div class="cta fade">
+      <button class="btn magnetic" id="magnet">Start scrolling</button>
+      <a class="btn ghost" href="index.html">&larr; Back to the atlas</a>
+    </div>
+    <div class="scrollcue fade"><i></i>Scroll</div>
+  </header>
+
+  <p class="warn" id="warn">Animation libraries could not load from the CDN — you are offline, or it is blocked. The page still works; the motion does not.</p>
+
+  <!-- ══════════ 1 · LOAD SEQUENCE ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">01 — Page load</span>
+      <h2>A timeline, not nine delays</h2>
+      <p class="lede">The headline above splits into words, each rising from behind a clipping mask, then the supporting elements follow. One timeline sequences all of it — change the first duration and everything after it shifts automatically.</p>
+    </div>
+    <div class="dgrid">
+      <div class="stage">
+        <div class="rev">
+          <div class="card"><b>Why a timeline</b><span>Chaining with <code>delay</code> means recalculating every number by hand when one step changes.</span></div>
+          <div class="card"><b>Position parameter</b><span><code>"-=0.4"</code> overlaps the previous step. <code>"&lt;"</code> starts alongside it.</span></div>
+          <div class="card"><b>The mask</b><span>Each word sits in a wrapper with <code>overflow:hidden</code>, so it rises from nothing.</span></div>
+          <div class="card"><b>Reload to replay</b><span>Refresh the page to watch the sequence again.</span></div>
+        </div>
+      </div>
+      <pre><span class="c">// split into masked words first</span>
+<span class="k">const</span> words = <span class="f">splitWords</span>(headline);
+
+<span class="k">const</span> tl = gsap.<span class="f">timeline</span>({
+  defaults: { ease: <span class="s">"power3.out"</span> }
+});
+
+tl.<span class="f">from</span>(words, {
+    yPercent: <span class="n">115</span>,
+    duration: <span class="n">0.9</span>,
+    stagger: <span class="n">0.045</span>       <span class="c">// each word 45ms later</span>
+  })
+  .<span class="f">to</span>(<span class="s">".hero .fade"</span>, {
+    autoAlpha: <span class="n">1</span>,
+    y: <span class="n">0</span>,
+    duration: <span class="n">0.7</span>,
+    stagger: <span class="n">0.09</span>
+  }, <span class="s">"-=0.55"</span>);      <span class="c">// overlap the words</span></pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 2 · REVEALS ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">02 — Scroll reveals</span>
+      <h2>The workhorse: enter the viewport, animate once</h2>
+      <p class="lede">Ninety percent of "nice scroll animation" is this one pattern. <code>ScrollTrigger.batch</code> groups whatever is on screen together so they stagger as a set rather than firing one at a time.</p>
+    </div>
+    <div class="dgrid">
+      <div class="stage">
+        <div class="rev">
+          <div class="card reveal"><b>Batched</b><span>Items visible together animate together.</span></div>
+          <div class="card reveal"><b>once: true</b><span>Fires on first entry, then stops listening.</span></div>
+          <div class="card reveal"><b>start: "top 85%"</b><span>Trigger top hits 85% down the viewport.</span></div>
+          <div class="card reveal"><b>Small distances</b><span>16–24px. Large travel reads as cheap.</span></div>
+          <div class="card reveal"><b>power2.out</b><span>Fast start, soft landing. Never linear.</span></div>
+          <div class="card reveal"><b>Short</b><span>0.5–0.7s. Anything slower feels broken.</span></div>
+        </div>
+      </div>
+      <pre>ScrollTrigger.<span class="f">batch</span>(<span class="s">".reveal"</span>, {
+  start: <span class="s">"top 85%"</span>,
+  once: <span class="k">true</span>,
+  onEnter: (batch) =&gt; gsap.<span class="f">to</span>(batch, {
+    autoAlpha: <span class="n">1</span>,
+    y: <span class="n">0</span>,
+    duration: <span class="n">0.6</span>,
+    stagger: <span class="n">0.08</span>,
+    ease: <span class="s">"power2.out"</span>
+  })
+});
+
+<span class="c">// set the start state in JS, not CSS, so the</span>
+<span class="c">// page is readable if the script never runs</span>
+gsap.<span class="f">set</span>(<span class="s">".reveal"</span>, { y: <span class="n">22</span>, autoAlpha: <span class="n">0</span> });</pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 3 · SCRUB ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">03 — Scrub</span>
+      <h2>Tie progress directly to scroll position</h2>
+      <p class="lede">With <code>scrub</code>, the animation has no duration of its own — the scrollbar becomes the playhead. Scroll back up and it runs backwards. A number rather than <code>true</code> adds catch-up smoothing.</p>
+    </div>
+    <div class="dgrid">
+      <div class="stage" id="scrubStage">
+        <div class="scrubwrap">
+          <div class="dial" id="dial"><b>0%</b></div>
+          <span class="eyebrow">Scroll position drives this</span>
+        </div>
+      </div>
+      <pre>gsap.<span class="f">to</span>(target, {
+  value: <span class="n">100</span>,
+  ease: <span class="s">"none"</span>,          <span class="c">// always none when scrubbing</span>
+  scrollTrigger: {
+    trigger: <span class="s">"#scrubStage"</span>,
+    start: <span class="s">"top 80%"</span>,
+    end: <span class="s">"bottom 40%"</span>,
+    scrub: <span class="n">0.6</span>          <span class="c">// 0.6s of catch-up smoothing</span>
+  },
+  onUpdate: () =&gt; paint(target.value)
+});
+
+<span class="c">// scrub: true  → locked 1:1 to the scrollbar</span>
+<span class="c">// scrub: 0.6   → eases toward the scroll position</span></pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 4 · PIN ══════════ -->
+  <section class="demo" style="padding-bottom:0;">
+    <div class="dhead">
+      <span class="eyebrow">04 — Pin</span>
+      <h2>Hold an element still and let scroll drive the content</h2>
+      <p class="lede">The section below sticks to the viewport for three screen-heights while the scroll swaps what is inside it. This is the effect behind almost every product-tour page on the web.</p>
+    </div>
+    <div class="dgrid">
+      <pre style="margin-bottom:22px;"><span class="k">const</span> tl = gsap.<span class="f">timeline</span>({
+  scrollTrigger: {
+    trigger: <span class="s">".pinouter"</span>,
+    start: <span class="s">"top top"</span>,
+    end: <span class="s">"bottom bottom"</span>,
+    pin: <span class="s">".pinner"</span>,      <span class="c">// what stays fixed</span>
+    scrub: <span class="n">0.5</span>
+  }
+});
+
+<span class="c">// ScrollTrigger goes on the TIMELINE,</span>
+<span class="c">// never on the tweens inside it</span>
+panels.<span class="f">forEach</span>((p, i) =&gt; {
+  <span class="k">if</span> (i) tl.<span class="f">fromTo</span>(p,
+    { autoAlpha: <span class="n">0</span>, y: <span class="n">40</span> },
+    { autoAlpha: <span class="n">1</span>, y: <span class="n">0</span> }, <span class="s">"+=0.4"</span>);
+  <span class="k">if</span> (i &lt; panels.length - <span class="n">1</span>)
+    tl.<span class="f">to</span>(p, { autoAlpha: <span class="n">0</span>, y: -<span class="n">40</span> }, <span class="s">"+=0.6"</span>);
+});</pre>
+      <div class="stage" style="min-height:auto;">
+        <div class="rev" style="grid-template-columns:1fr;">
+          <div class="card"><b>pin creates spacing</b><span>ScrollTrigger inserts padding equal to the pinned distance so the page below does not jump.</span></div>
+          <div class="card"><b>Give it room</b><span>The outer element needs real height — here <code>280vh</code> — or there is nothing to scroll through.</span></div>
+          <div class="card"><b>One trigger per timeline</b><span>Nesting ScrollTriggers inside a timeline is the most common way people break this.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="pinouter">
+    <div class="pinner">
+      <div class="panel" data-panel><span class="eyebrow">Pinned · 01</span><h2>The section is fixed.</h2><p class="lede">Scroll continues, but this stays put.</p></div>
+      <div class="panel" data-panel><span class="eyebrow">Pinned · 02</span><h2>Scroll drives the content.</h2><p class="lede">The scrollbar is now a timeline scrubber.</p></div>
+      <div class="panel" data-panel><span class="eyebrow">Pinned · 03</span><h2>Then it releases.</h2><p class="lede">And the page carries on as normal.</p></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 5 · HORIZONTAL ══════════ -->
+  <section class="demo hsec">
+    <div class="dhead">
+      <span class="eyebrow">05 — Horizontal scroll</span>
+      <h2>Vertical input, horizontal movement</h2>
+      <p class="lede">Pin the section, then translate a wide track sideways by exactly its overflow width. Keep these short — three or four panels. Long horizontal sections annoy people.</p>
+    </div>
+  </section>
+  <div class="hsec" id="hsec">
+    <div class="htrack" id="htrack">
+      <div class="hpanel"><span class="num">01 / 04</span><div><h3>Pin the container</h3><p style="margin-top:8px">The section stops moving vertically.</p></div></div>
+      <div class="hpanel"><span class="num">02 / 04</span><div><h3>Translate the track</h3><p style="margin-top:8px">Move it by <code>scrollWidth − innerWidth</code>.</p></div></div>
+      <div class="hpanel"><span class="num">03 / 04</span><div><h3>Scrub it</h3><p style="margin-top:8px">So the movement follows the scroll exactly.</p></div></div>
+      <div class="hpanel"><span class="num">04 / 04</span><div><h3>End the pin</h3><p style="margin-top:8px">Set <code>end</code> to the same distance.</p></div></div>
+    </div>
+  </div>
+  <section class="demo" style="padding-top:52px;">
+    <div class="dgrid">
+      <pre><span class="k">const</span> track = document.<span class="f">querySelector</span>(<span class="s">"#htrack"</span>);
+<span class="k">const</span> distance = track.scrollWidth - innerWidth;
+
+gsap.<span class="f">to</span>(track, {
+  x: -distance,
+  ease: <span class="s">"none"</span>,
+  scrollTrigger: {
+    trigger: <span class="s">"#hsec"</span>,
+    start: <span class="s">"center center"</span>,
+    end: () =&gt; <span class="s">"+="</span> + distance,  <span class="c">// function = re-read on resize</span>
+    pin: <span class="k">true</span>,
+    scrub: <span class="n">0.6</span>,
+    invalidateOnRefresh: <span class="k">true</span>
+  }
+});</pre>
+      <div class="stage" style="min-height:auto;">
+        <div class="rev" style="grid-template-columns:1fr;">
+          <div class="card"><b>Functions for end</b><span>Passing a function means the value is recalculated on resize instead of freezing at load width.</span></div>
+          <div class="card"><b>invalidateOnRefresh</b><span>Tells GSAP to re-read start and end values when the layout changes.</span></div>
+          <div class="card"><b>Distance = time</b><span>The pin lasts exactly as long as the horizontal travel, so nothing overshoots.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 6 · PARALLAX ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">06 — Parallax</span>
+      <h2>Different speeds imply depth</h2>
+      <p class="lede">Move each layer a different amount across the same scroll range. Keep it subtle — under about 15% of viewport height. Anything more and the page feels like it is sliding apart.</p>
+    </div>
+    <div class="dgrid">
+      <div class="plx" id="plx">
+        <div class="p1" data-speed="-70"></div>
+        <div class="p2" data-speed="40"></div>
+        <div class="p3" data-speed="-110"></div>
+        <div class="cap">Three layers, three speeds</div>
+      </div>
+      <pre>gsap.<span class="f">utils</span>.<span class="f">toArray</span>(<span class="s">"[data-speed]"</span>).<span class="f">forEach</span>(el =&gt; {
+  gsap.<span class="f">to</span>(el, {
+    y: () =&gt; el.dataset.speed,   <span class="c">// px of drift</span>
+    ease: <span class="s">"none"</span>,
+    scrollTrigger: {
+      trigger: <span class="s">"#plx"</span>,
+      start: <span class="s">"top bottom"</span>,   <span class="c">// enters from below</span>
+      end: <span class="s">"bottom top"</span>,     <span class="c">// until fully past</span>
+      scrub: <span class="k">true</span>
+    }
+  });
+});
+
+<span class="c">// negative = moves up faster = reads as nearer</span></pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 7 · COUNTERS ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">07 — Counters</span>
+      <h2>Numbers that count when they arrive</h2>
+      <p class="lede">GSAP animates any object property, not just DOM nodes. Tween a plain number and write it out on each frame. <code>snap</code> keeps it on whole integers instead of showing 47.3819.</p>
+    </div>
+    <div class="dgrid">
+      <div class="stage">
+        <div class="stats">
+          <div class="stat"><div class="v" data-count="1284">0</div><div class="l">Seats</div></div>
+          <div class="stat"><div class="v" data-count="48" data-prefix="$" data-suffix="k">0</div><div class="l">MRR</div></div>
+          <div class="stat"><div class="v" data-count="99" data-suffix="%">0</div><div class="l">Uptime</div></div>
+          <div class="stat"><div class="v" data-count="12" data-suffix="ms">0</div><div class="l">p50</div></div>
+        </div>
+      </div>
+      <pre>gsap.<span class="f">utils</span>.<span class="f">toArray</span>(<span class="s">"[data-count]"</span>).<span class="f">forEach</span>(el =&gt; {
+  <span class="k">const</span> obj = { n: <span class="n">0</span> };
+
+  gsap.<span class="f">to</span>(obj, {
+    n: +el.dataset.count,
+    duration: <span class="n">1.6</span>,
+    ease: <span class="s">"power2.out"</span>,
+    snap: { n: <span class="n">1</span> },        <span class="c">// whole numbers only</span>
+    scrollTrigger: { trigger: el, start: <span class="s">"top 88%"</span>, once: <span class="k">true</span> },
+    onUpdate: () =&gt; {
+      el.textContent = obj.n.<span class="f">toLocaleString</span>();
+    }
+  });
+});</pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 8 · SMOOTH SCROLL ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">08 — Smooth scroll</span>
+      <h2>The single most-copied detail on the web</h2>
+      <p class="lede">That weighted, slightly-delayed scroll feel on award-winning sites is almost always <strong style="color:var(--ink)">Lenis</strong>. It is about twenty lines to wire up, and it is running on this page right now — compare it to the atlas page.</p>
+    </div>
+    <div class="dgrid">
+      <pre><span class="k">const</span> lenis = <span class="k">new</span> <span class="f">Lenis</span>({
+  lerp: <span class="n">0.1</span>,          <span class="c">// 0.05 heavy · 0.2 light</span>
+  wheelMultiplier: <span class="n">1</span>
+});
+
+<span class="c">// 1 · tell ScrollTrigger when Lenis scrolls</span>
+lenis.<span class="f">on</span>(<span class="s">"scroll"</span>, ScrollTrigger.update);
+
+<span class="c">// 2 · drive Lenis from GSAP's ticker so both</span>
+<span class="c">//     run on one requestAnimationFrame loop</span>
+gsap.<span class="f">ticker</span>.<span class="f">add</span>((time) =&gt; lenis.<span class="f">raf</span>(time * <span class="n">1000</span>));
+gsap.<span class="f">ticker</span>.<span class="f">lagSmoothing</span>(<span class="n">0</span>);</pre>
+      <div class="stage" style="min-height:auto;">
+        <div class="rev" style="grid-template-columns:1fr;">
+          <div class="card"><b>One loop, not two</b><span>Running Lenis on its own <code>rAF</code> alongside GSAP causes visible jitter. The ticker fixes it.</span></div>
+          <div class="card"><b>lagSmoothing(0)</b><span>Stops GSAP compensating for frame drops, which fights Lenis.</span></div>
+          <div class="card"><b>Use it sparingly</b><span>It overrides native scrolling. On content-heavy sites plenty of people find it irritating.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 9 · MICRO ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">09 — Micro-interaction</span>
+      <h2>The magnetic button</h2>
+      <p class="lede">Hover the button in the hero, or this one. It leans toward the cursor and springs back on exit. <code>quickTo</code> creates a reusable setter — far cheaper than a new tween on every mousemove.</p>
+    </div>
+    <div class="dgrid">
+      <div class="stage" style="display:grid; place-items:center;">
+        <button class="btn magnetic" id="magnet2">Hover me</button>
+      </div>
+      <pre><span class="k">const</span> xTo = gsap.<span class="f">quickTo</span>(btn, <span class="s">"x"</span>, { duration:<span class="n">0.4</span>, ease:<span class="s">"power3"</span> });
+<span class="k">const</span> yTo = gsap.<span class="f">quickTo</span>(btn, <span class="s">"y"</span>, { duration:<span class="n">0.4</span>, ease:<span class="s">"power3"</span> });
+
+btn.<span class="f">addEventListener</span>(<span class="s">"mousemove"</span>, e =&gt; {
+  <span class="k">const</span> r = btn.<span class="f">getBoundingClientRect</span>();
+  <span class="f">xTo</span>((e.clientX - r.left - r.width  / <span class="n">2</span>) * <span class="n">0.4</span>);
+  <span class="f">yTo</span>((e.clientY - r.top  - r.height / <span class="n">2</span>) * <span class="n">0.4</span>);
+});
+
+btn.<span class="f">addEventListener</span>(<span class="s">"mouseleave"</span>, () =&gt; {
+  <span class="f">xTo</span>(<span class="n">0</span>); <span class="f">yTo</span>(<span class="n">0</span>);
+});</pre>
+    </div>
+  </section>
+
+  <!-- ══════════ THE STACK ══════════ -->
+  <section class="demo">
+    <div class="dhead">
+      <span class="eyebrow">Putting it together</span>
+      <h2>What is actually running on this page</h2>
+      <p class="lede">Two libraries, about 60&nbsp;KB gzipped between them. That is the whole trick.</p>
+    </div>
+    <div class="stack">
+      <div class="tool"><span class="nm">gsap</span><p>The engine. Tweens, timelines, easing, the ticker.</p></div>
+      <div class="tool"><span class="nm">ScrollTrigger</span><p>Ties any animation to scroll position. Pinning, scrubbing, batching, enter/leave callbacks.</p></div>
+      <div class="tool"><span class="nm">lenis</span><p>Inertial smooth scroll. Roughly 3&nbsp;KB.</p></div>
+      <div class="tool"><span class="nm">gsap.matchMedia()</span><p>Reverts every animation automatically when a breakpoint stops matching — including <code>prefers-reduced-motion</code>.</p></div>
+      <div class="tool"><span class="nm">Hand-rolled split</span><p>Splitting text into masked words is ten lines. GSAP's SplitText plugin does more, but is a paid Club feature.</p></div>
+      <div class="tool"><span class="nm">Not used here</span><p>Three.js and WebGL. That is the next tier, and where the truly show-off sites go.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    Scroll Lab — every effect above is live, with its real source alongside it.<br>
+    Motion respects <code>prefers-reduced-motion</code>: with it enabled, everything renders in its final state and nothing moves.
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- graceful degradation ---------- */
+  if (typeof window.gsap === "undefined" || typeof window.ScrollTrigger === "undefined") {
+    document.getElementById("warn").style.display = "block";
+    return;                       // page stays fully readable, just static
+  }
+  document.body.classList.add("anim");
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.defaults({ ease: "power2.out", duration: 0.6 });
+
+  /* Browsers restore the previous scroll position on reload. With pinned
+     ScrollTriggers that means every start/end is measured against a
+     scrolled viewport — you get negative values and nothing fires.
+     Always opt out on a scroll-driven page. */
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.scrollTo(0, 0);
+
+  /* ---------- smooth scroll (Lenis) ---------- */
+  var lenis = null;
+  if (typeof window.Lenis !== "undefined") {
+    lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1 });
+    window.lenis = lenis;               // handy in devtools: lenis.scrollTo("#plx")
+    lenis.on("scroll", ScrollTrigger.update);
+    gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  /* ---------- split text into masked words ---------- */
+  function splitWords(el) {
+    var words = el.textContent.trim().split(/\s+/);
+    el.textContent = "";
+    words.forEach(function (w, i) {
+      var outer = document.createElement("span");
+      outer.className = "w";
+      var inner = document.createElement("span");
+      inner.className = "wi";
+      inner.textContent = w;
+      outer.appendChild(inner);
+      el.appendChild(outer);
+      if (i < words.length - 1) el.appendChild(document.createTextNode(" "));
+    });
+    return el.querySelectorAll(".wi");
+  }
+
+  /* ---------- scroll progress bar ---------- */
+  gsap.to("#bar", {
+    scaleX: 1,
+    ease: "none",
+    scrollTrigger: { start: 0, end: "max", scrub: 0.3 }
+  });
+
+  /* ---------- responsive + reduced motion ---------- */
+  var mm = gsap.matchMedia();
+
+  mm.add({
+    motion: "(prefers-reduced-motion: no-preference)",
+    reduce: "(prefers-reduced-motion: reduce)"
+  }, function (ctx) {
+    var reduce = ctx.conditions.reduce;
+
+    /* everything lands in its final state when motion is reduced */
+    if (reduce) {
+      gsap.set(".reveal, .hero .fade", { autoAlpha: 1, y: 0 });
+      gsap.set("[data-panel]", { autoAlpha: 1, y: 0 });
+      document.querySelectorAll("[data-count]").forEach(function (el) {
+        el.textContent = (el.dataset.prefix || "") +
+          (+el.dataset.count).toLocaleString() + (el.dataset.suffix || "");
+      });
+      paintDial(100);
+      return;
+    }
+
+    /* ── 1 · load sequence ── */
+    var words = splitWords(document.getElementById("headline"));
+    gsap.set(".hero .fade", { y: 14, autoAlpha: 0 });
+    gsap.timeline({ defaults: { ease: "power3.out" } })
+      .from(words, { yPercent: 115, duration: 0.9, stagger: 0.045 })
+      .to(".hero .fade", { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.09 }, "-=0.55");
+
+    /* ── 2 · batched reveals ── */
+    gsap.set(".reveal", { y: 22, autoAlpha: 0 });
+    ScrollTrigger.batch(".reveal", {
+      start: "top 85%",
+      once: true,
+      onEnter: function (batch) {
+        gsap.to(batch, { autoAlpha: 1, y: 0, duration: 0.6, stagger: 0.08 });
+      }
+    });
+
+    /* Anything already above the fold gets no onEnter — a deep link or a
+       mid-page refresh would leave it invisible forever. Reveal those. */
+    ScrollTrigger.addEventListener("refresh", function () {
+      gsap.utils.toArray(".reveal").forEach(function (el) {
+        if (el.getBoundingClientRect().bottom < 0) gsap.set(el, { autoAlpha: 1, y: 0 });
+      });
+    });
+
+    /* ── 3 · scrub ── */
+    var dialObj = { v: 0 };
+    gsap.to(dialObj, {
+      v: 100,
+      ease: "none",
+      scrollTrigger: { trigger: "#scrubStage", start: "top 80%", end: "bottom 40%", scrub: 0.6 },
+      onUpdate: function () { paintDial(dialObj.v); }
+    });
+
+    /* ── 4 · pin ── */
+    var panels = gsap.utils.toArray("[data-panel]");
+    gsap.set(panels.slice(1), { autoAlpha: 0, y: 40 });
+    var pinTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".pinouter", start: "top top", end: "bottom bottom",
+        pin: ".pinner", scrub: 0.5
+      }
+    });
+    panels.forEach(function (p, i) {
+      if (i) pinTl.to(p, { autoAlpha: 1, y: 0 }, "+=0.4");
+      if (i < panels.length - 1) pinTl.to(p, { autoAlpha: 0, y: -40 }, "+=0.6");
+    });
+
+    /* ── 5 · horizontal ── */
+    var track = document.getElementById("htrack");
+    gsap.to(track, {
+      x: function () { return -(track.scrollWidth - window.innerWidth + 26); },
+      ease: "none",
+      scrollTrigger: {
+        trigger: "#hsec",
+        start: "center center",
+        end: function () { return "+=" + (track.scrollWidth - window.innerWidth + 26); },
+        pin: true, scrub: 0.6, invalidateOnRefresh: true
+      }
+    });
+
+    /* ── 6 · parallax ── */
+    gsap.utils.toArray("[data-speed]").forEach(function (el) {
+      gsap.to(el, {
+        y: function () { return el.dataset.speed; },
+        ease: "none",
+        scrollTrigger: { trigger: "#plx", start: "top bottom", end: "bottom top", scrub: true }
+      });
+    });
+
+    /* ── 7 · counters ── */
+    gsap.utils.toArray("[data-count]").forEach(function (el) {
+      var obj = { n: 0 };
+      gsap.to(obj, {
+        n: +el.dataset.count,
+        duration: 1.6,
+        snap: { n: 1 },
+        scrollTrigger: { trigger: el, start: "top 88%", once: true },
+        onUpdate: function () {
+          el.textContent = (el.dataset.prefix || "") + obj.n.toLocaleString() + (el.dataset.suffix || "");
+        }
+      });
+    });
+
+    /* ── 9 · magnetic buttons ── */
+    ["magnet", "magnet2"].forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      var xTo = gsap.quickTo(btn, "x", { duration: 0.4, ease: "power3" });
+      var yTo = gsap.quickTo(btn, "y", { duration: 0.4, ease: "power3" });
+      btn.addEventListener("mousemove", function (e) {
+        var r = btn.getBoundingClientRect();
+        xTo((e.clientX - r.left - r.width / 2) * 0.4);
+        yTo((e.clientY - r.top - r.height / 2) * 0.4);
+      });
+      btn.addEventListener("mouseleave", function () { xTo(0); yTo(0); });
+    });
+  });
+
+  function paintDial(v) {
+    var d = document.getElementById("dial");
+    if (!d) return;
+    d.style.background = "conic-gradient(var(--accent) 0 " + v + "%, var(--surface-3) " + v + "% 100%)";
+    d.querySelector("b").textContent = Math.round(v) + "%";
+  }
+
+  /* smooth-scroll the hero button to the first section */
+  var m = document.getElementById("magnet");
+  if (m) m.addEventListener("click", function () {
+    var target = document.querySelector("section.demo");
+    if (lenis) lenis.scrollTo(target, { offset: -40 });
+    else target.scrollIntoView({ behavior: "smooth" });
+  });
+
+  /* Web fonts change layout height when they swap in. Measuring before
+     that happens is the single most common ScrollTrigger bug — starts and
+     ends are computed against the fallback font's metrics and everything
+     fires at the wrong scroll position. Re-measure once fonts settle. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+  }
+  window.addEventListener("load", function () { ScrollTrigger.refresh(); });
+  ScrollTrigger.refresh();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interface Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bricolage+Grotesque:opsz,wght@12..96,400;600;800&family=Bungee&family=Caveat:wght@400;700&family=Chakra+Petch:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:opsz,wght@9..40,400;500;700&family=Fraunces:opsz,wght@9..144,400;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Monoton&family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Poppins:wght@400;500;600;700&family=Press+Start+2P&family=Rubik:wght@400;500;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@400;500;700&family=Special+Elite&family=Syne:wght@400;700;800&family=VT323&display=swap">
+
+<style>
+/* ============================================================
+   WORKBENCH SHELL — deliberately neutral. Never competes with
+   the specimens. Own prefix (.wb-) so nothing leaks into .kit.
+   ============================================================ */
+:root {
+  --wb-bg:      #F3F4F6;
+  --wb-panel:   #FFFFFF;
+  --wb-panel-2: #ECEEF1;
+  --wb-ink:     #14171B;
+  --wb-ink-2:   #545D69;
+  --wb-ink-3:   #838D9A;
+  --wb-rule:    #D8DCE2;
+  --wb-rule-2:  #E7EAEE;
+  --wb-accent:  #3D5A73;
+  --wb-accent-2:#27455E;
+  --wb-tint:    #E2E9EF;
+  --wb-shadow:  0 1px 2px rgba(20,23,27,.05), 0 10px 30px -18px rgba(20,23,27,.3);
+  --wb-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --wb-disp: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wb-bg:      #0D0E10;
+    --wb-panel:   #15181C;
+    --wb-panel-2: #1B1F24;
+    --wb-ink:     #E9ECF0;
+    --wb-ink-2:   #A2ACB8;
+    --wb-ink-3:   #757F8B;
+    --wb-rule:    #272C33;
+    --wb-rule-2:  #1F242A;
+    --wb-accent:  #8FB4D0;
+    --wb-accent-2:#B6D2E6;
+    --wb-tint:    #1A252E;
+    --wb-shadow:  0 1px 2px rgba(0,0,0,.5), 0 12px 34px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"] {
+  --wb-bg:      #0D0E10;
+  --wb-panel:   #15181C;
+  --wb-panel-2: #1B1F24;
+  --wb-ink:     #E9ECF0;
+  --wb-ink-2:   #A2ACB8;
+  --wb-ink-3:   #757F8B;
+  --wb-rule:    #272C33;
+  --wb-rule-2:  #1F242A;
+  --wb-accent:  #8FB4D0;
+  --wb-accent-2:#B6D2E6;
+  --wb-tint:    #1A252E;
+  --wb-shadow:  0 1px 2px rgba(0,0,0,.5), 0 12px 34px -18px rgba(0,0,0,.9);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--wb-bg);
+  color: var(--wb-ink);
+  font-family: var(--wb-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wb { max-width: 1440px; margin: 0 auto; padding: 0 24px 120px; }
+
+.wb-eyebrow {
+  font-family: var(--wb-mono);
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--wb-accent);
+  margin: 0;
+}
+
+.wb-head { padding: 64px 0 40px; display: flex; flex-direction: column; gap: 20px; }
+.wb-head h1 {
+  font-family: var(--wb-disp);
+  font-size: clamp(38px, 6.4vw, 74px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: .97;
+  margin: 0;
+  max-width: 17ch;
+  text-wrap: balance;
+}
+.wb-head .wb-lede {
+  font-family: var(--wb-disp);
+  font-weight: 400;
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.55;
+  color: var(--wb-ink-2);
+  max-width: 62ch;
+  margin: 0;
+}
+.wb-facts { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 11.5px; color: var(--wb-ink-3); letter-spacing: .04em; }
+.wb-facts b { color: var(--wb-ink); font-weight: 600; }
+
+.wb-sec { margin-top: 56px; }
+.wb-sec-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--wb-rule);
+  padding-bottom: 12px; margin-bottom: 24px;
+}
+.wb-sec-head h2 {
+  font-family: var(--wb-disp);
+  font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0;
+}
+.wb-sec-head p { margin: 4px 0 0; color: var(--wb-ink-3); font-size: 12px; max-width: 60ch; }
+
+/* ---- controls ---- */
+.wb-controls {
+  position: sticky; top: 0; z-index: 60;
+  background: var(--wb-bg);
+  background: color-mix(in srgb, var(--wb-bg) 90%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--wb-rule);
+  margin: 0 -24px; padding: 12px 24px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.wb-search {
+  flex: 1 1 200px; min-width: 0;
+  font-family: var(--wb-mono); font-size: 12.5px;
+  padding: 8px 12px; color: var(--wb-ink);
+  background: var(--wb-panel); border: 1px solid var(--wb-rule); border-radius: 4px;
+}
+.wb-search::placeholder { color: var(--wb-ink-3); }
+.wb-fams { display: flex; gap: 5px; flex-wrap: wrap; }
+.wb-fam {
+  font-family: var(--wb-mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+  padding: 6px 10px; border-radius: 3px; cursor: pointer;
+  background: var(--wb-panel); color: var(--wb-ink-2);
+  border: 1px solid var(--wb-rule);
+}
+.wb-fam[aria-pressed="true"] { background: var(--wb-accent); border-color: var(--wb-accent); color: var(--wb-bg); }
+.wb-btn {
+  font-family: var(--wb-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  padding: 8px 12px; border-radius: 4px; cursor: pointer;
+  background: var(--wb-panel); color: var(--wb-ink); border: 1px solid var(--wb-rule);
+  white-space: nowrap;
+}
+.wb-btn:hover { border-color: var(--wb-accent); color: var(--wb-accent); }
+.wb-count { font-size: 11px; color: var(--wb-ink-3); white-space: nowrap; letter-spacing: .05em; }
+
+:where(button, input, a):focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 2px; }
+
+/* ---- contact sheet ---- */
+.wb-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
+  gap: 12px;
+}
+.tile {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--wb-rule);
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+  position: relative;
+}
+.tile:hover { transform: translateY(-3px); box-shadow: var(--wb-shadow); border-color: var(--wb-accent); }
+.tile[aria-current="true"] { border-color: var(--wb-accent); box-shadow: 0 0 0 2px var(--wb-accent); }
+.tile-face {
+  background: var(--bg);
+  background-image: var(--grad), var(--tex);
+  color: var(--ink);
+  font-family: var(--f-b);
+  padding: 14px;
+  height: 132px;
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.tile-aa {
+  font-family: var(--f-d);
+  font-weight: var(--h-w);
+  letter-spacing: var(--h-ls);
+  text-transform: var(--h-tt);
+  font-size: 26px; line-height: 1;
+  color: var(--ink);
+}
+.tile-card {
+  background: var(--surface);
+  border: var(--bw) var(--bstyle) var(--bc);
+  border-radius: var(--r);
+  box-shadow: var(--sh);
+  backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
+  flex: 1;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 9px 10px;
+}
+.tile-chip {
+  font-family: var(--f-b); font-size: 9.5px; font-weight: var(--btn-w);
+  letter-spacing: var(--btn-ls); text-transform: var(--btn-tt);
+  background: var(--accent); color: var(--on-accent);
+  border-radius: var(--btn-r); box-shadow: var(--btn-sh);
+  border: var(--btn-bw) var(--bstyle) var(--bc);
+  padding: 5px 9px; white-space: nowrap;
+}
+.tile-sw { display: flex; gap: 3px; }
+.tile-sw i { width: 11px; height: 11px; border-radius: calc(var(--r-sm) / 1.6); display: block; }
+.tile-meta {
+  background: var(--wb-panel); border-top: 1px solid var(--wb-rule);
+  padding: 8px 10px; display: flex; flex-direction: column; gap: 1px;
+}
+.tile-name { font-family: var(--wb-mono); font-size: 11.5px; font-weight: 600; color: var(--wb-ink); letter-spacing: -.01em; }
+.tile-fam { font-family: var(--wb-mono); font-size: 9.5px; color: var(--wb-ink-3); letter-spacing: .07em; text-transform: uppercase; }
+.tile-no {
+  position: absolute; top: 8px; right: 9px;
+  font-family: var(--wb-mono); font-size: 9px; opacity: .4; color: var(--ink);
+}
+
+/* ---- stage ---- */
+.wb-stagebar {
+  position: sticky; top: 48px; z-index: 50;
+  background: var(--wb-panel);
+  border: 1px solid var(--wb-rule);
+  border-radius: 6px 6px 0 0;
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.wb-stagebar .sb-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wb-stagebar .sb-name { font-family: var(--wb-disp); font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+.wb-stagebar .sb-note { font-size: 11.5px; color: var(--wb-ink-3); max-width: 68ch; line-height: 1.5; }
+.wb-stagebar .sb-tag {
+  font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 3px; background: var(--wb-tint); color: var(--wb-accent);
+  border: 1px solid var(--wb-rule); white-space: nowrap;
+}
+.sb-nav { margin-left: auto; display: flex; gap: 6px; }
+
+.wb-stage {
+  border: 1px solid var(--wb-rule); border-top: 0; border-radius: 0 0 6px 6px;
+  overflow: hidden;
+}
+
+/* ---- token readout ---- */
+.wb-tokens {
+  margin-top: 14px;
+  border: 1px solid var(--wb-rule); border-radius: 6px;
+  background: var(--wb-panel); overflow: hidden;
+}
+.wb-tokens summary {
+  cursor: pointer; padding: 12px 18px; font-size: 11.5px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--wb-ink-2);
+  list-style: none; display: flex; align-items: center; gap: 10px;
+}
+.wb-tokens summary::-webkit-details-marker { display: none; }
+.wb-tokens summary::before { content: "+"; color: var(--wb-accent); font-weight: 600; }
+.wb-tokens[open] summary::before { content: "\2212"; }
+.wb-tokens pre {
+  margin: 0; padding: 0 18px 18px; overflow-x: auto;
+  font-family: var(--wb-mono); font-size: 11.5px; line-height: 1.7; color: var(--wb-ink-2);
+}
+.wb-tokens .tk { color: var(--wb-accent); }
+
+.wb-empty { display: none; padding: 48px 0; color: var(--wb-ink-3); font-size: 12.5px; }
+
+footer.wb-foot {
+  margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--wb-rule);
+  font-size: 11px; color: var(--wb-ink-3); line-height: 1.9; letter-spacing: .03em;
+}
+
+@media (max-width: 720px) {
+  .wb { padding: 0 14px 80px; }
+  .wb-controls { margin: 0 -14px; padding: 10px 14px; }
+  .wb-sheet { grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 9px; }
+  .wb-stagebar { top: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+</style>
+
+<style>
+.xnav{position:fixed;left:12px;top:12px;z-index:400;display:flex;gap:4px;align-items:center;
+ background:rgba(10,12,18,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:5px;
+ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;}
+.xnav a{color:#8A94A6;text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap;transition:background .18s,color .18s;}
+.xnav a:hover{background:rgba(255,255,255,.09);color:#F2F4F8;}
+.xnav a[aria-current="page"]{background:#38F2E4;color:#04231F;}
+@media (max-width:640px){.xnav{font-size:9px;padding:4px;}.xnav a{padding:5px 7px;}}
+</style>
+<nav class="xnav" aria-label="Pages">
+ <a href="library.html">Components</a>
+ <a href="database.html">580 Designs</a>
+ <a href="extreme.html">Extreme</a>
+ <a href="scroll-lab.html">Scroll Lab</a>
+ <a href="index.html" aria-current="page">Atlas</a>
+</nav>

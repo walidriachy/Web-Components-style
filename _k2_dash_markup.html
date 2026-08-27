@@ -1,0 +1,427 @@
+        <!-- ══════ D1 · DASHBOARD HEADER ══════ -->
+        <div class="k-group d-only">
+          <div class="k-gtitle">D1 — Dashboard chrome</div>
+
+          <div class="k-row" style="justify-content:space-between;align-items:flex-start">
+            <div class="k-stack" style="gap:4px">
+              <h2>Trading &amp; revenue</h2>
+              <p style="font-size:12.5px">Consolidated view across all books &middot; settled to 26 Aug 2026</p>
+            </div>
+            <div class="k-row" style="gap:7px">
+              <span class="d-live"><i></i>LIVE</span>
+              <button class="k-btn sec sm">Export</button>
+              <button class="k-btn sm">Refresh</button>
+            </div>
+          </div>
+
+          <div class="d-filters">
+            <span class="d-range">&#128197; 1 Jun &ndash; 26 Aug 2026 &nbsp;&#9662;</span>
+            <span class="k-seg"><span>1D</span><span>1W</span><span class="on">3M</span><span>1Y</span><span>ALL</span></span>
+            <select class="k-in" style="width:auto;flex:none"><option>All desks</option><option>Equities</option><option>FX</option></select>
+            <span class="k-chip">EUR <b>&times;</b></span>
+            <span class="k-chip">excl. internal <b>&times;</b></span>
+            <button class="k-btn ghost sm" style="margin-left:auto">Reset</button>
+          </div>
+
+          <div class="d-grid d-4">
+            <div class="d-kpi">
+              <span class="lb">Net revenue</span>
+              <span class="vl">&euro;4.82M</span>
+              <span class="ft"><span class="d-delta up">&#9650; 12.4%</span><small>vs Q2</small></span>
+              <svg class="d-chart" viewBox="0 0 120 30" preserveAspectRatio="none" aria-hidden="true">
+                <polyline class="ser1" points="0,24 15,20 30,22 45,14 60,17 75,9 90,12 105,5 120,7"/>
+              </svg>
+            </div>
+            <div class="d-kpi">
+              <span class="lb">Gross margin</span>
+              <span class="vl">68.4%</span>
+              <span class="ft"><span class="d-delta up">&#9650; 1.8pp</span><small>vs Q2</small></span>
+              <svg class="d-chart" viewBox="0 0 120 30" preserveAspectRatio="none" aria-hidden="true">
+                <polyline class="ser1" points="0,20 15,18 30,19 45,15 60,16 75,13 90,14 105,11 120,10"/>
+              </svg>
+            </div>
+            <div class="d-kpi">
+              <span class="lb">Drawdown</span>
+              <span class="vl">&minus;3.1%</span>
+              <span class="ft"><span class="d-delta dn">&#9660; 0.9pp</span><small>peak-to-trough</small></span>
+              <svg class="d-chart" viewBox="0 0 120 30" preserveAspectRatio="none" aria-hidden="true">
+                <polyline class="ser1" style="stroke:var(--err)" points="0,6 15,9 30,7 45,16 60,13 75,21 90,18 105,24 120,20"/>
+              </svg>
+            </div>
+            <div class="d-kpi">
+              <span class="lb">Sharpe</span>
+              <span class="vl">1.94</span>
+              <span class="ft"><span class="d-delta up">&#9650; 0.12</span><small>rolling 90d</small></span>
+              <svg class="d-chart" viewBox="0 0 120 30" preserveAspectRatio="none" aria-hidden="true">
+                <polyline class="ser1" points="0,18 15,16 30,17 45,12 60,14 75,10 90,11 105,8 120,6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════ D2 · CHARTS ══════ -->
+        <div class="k-group d-only">
+          <div class="k-gtitle">D2 — Charts</div>
+
+          <div class="d-grid d-wide">
+            <div class="d-panel">
+              <div class="d-ph"><h4>Revenue vs forecast</h4><span class="sub">EUR, millions</span></div>
+              <svg class="d-chart" viewBox="0 0 340 150" role="img" aria-label="Line chart of revenue against forecast">
+                <line class="grid" x1="30" y1="12"  x2="336" y2="12"/>
+                <line class="grid" x1="30" y1="45"  x2="336" y2="45"/>
+                <line class="grid" x1="30" y1="78"  x2="336" y2="78"/>
+                <line class="grid" x1="30" y1="111" x2="336" y2="111"/>
+                <line class="grid" x1="30" y1="128" x2="336" y2="128"/>
+                <text class="axis" x="0" y="16">6.0</text><text class="axis" x="0" y="49">4.5</text>
+                <text class="axis" x="0" y="82">3.0</text><text class="axis" x="0" y="115">1.5</text>
+                <polygon class="fill1" points="34,104 76,86 118,92 160,64 202,71 244,42 286,52 330,26 330,128 34,128"/>
+                <polyline class="ser1" points="34,104 76,86 118,92 160,64 202,71 244,42 286,52 330,26"/>
+                <polyline class="ser2" points="34,110 76,98 118,90 160,80 202,70 244,60 286,48 330,38"/>
+                <circle class="dot" cx="330" cy="26" r="3.5"/>
+                <text class="axis" x="30"  y="142">Jan</text><text class="axis" x="112" y="142">Mar</text>
+                <text class="axis" x="196" y="142">May</text><text class="axis" x="278" y="142">Jul</text>
+              </svg>
+              <div class="d-legend">
+                <span><i style="background:var(--accent)"></i>Actual</span>
+                <span><i style="background:var(--accent-2)"></i>Forecast</span>
+              </div>
+            </div>
+
+            <div class="d-panel">
+              <div class="d-ph"><h4>Book mix</h4></div>
+              <svg class="d-chart" viewBox="0 0 130 130" role="img" aria-label="Donut chart of book mix">
+                <circle class="ring-track" cx="65" cy="65" r="48" stroke-width="20"/>
+                <circle class="ring-val" cx="65" cy="65" r="48" stroke-width="20"
+                        stroke-dasharray="128 302" transform="rotate(-90 65 65)"/>
+                <circle cx="65" cy="65" r="48" fill="none" stroke="var(--accent-2)" stroke-width="20"
+                        stroke-dasharray="86 344" stroke-dashoffset="-128" transform="rotate(-90 65 65)"/>
+                <circle cx="65" cy="65" r="48" fill="none" stroke="var(--ok)" stroke-width="20"
+                        stroke-dasharray="60 370" stroke-dashoffset="-214" transform="rotate(-90 65 65)"/>
+                <text x="65" y="62" text-anchor="middle" class="lbl" style="font-size:19px;fill:var(--ink);font-family:var(--f-d);font-weight:var(--h-w)">&euro;4.8M</text>
+                <text x="65" y="76" text-anchor="middle" class="axis" text-rendering="geometricPrecision">total</text>
+              </svg>
+              <div class="d-legend">
+                <span><i style="background:var(--accent)"></i>Equities 42%</span>
+                <span><i style="background:var(--accent-2)"></i>FX 28%</span>
+                <span><i style="background:var(--ok)"></i>Credit 20%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid d-2">
+            <div class="d-panel">
+              <div class="d-ph"><h4>P&amp;L by desk</h4><span class="sub">stacked, monthly</span></div>
+              <svg class="d-chart" viewBox="0 0 340 140" role="img" aria-label="Stacked bar chart">
+                <line class="grid" x1="26" y1="20" x2="336" y2="20"/>
+                <line class="grid" x1="26" y1="60" x2="336" y2="60"/>
+                <line class="grid" x1="26" y1="100" x2="336" y2="100"/>
+                <line class="grid" x1="26" y1="120" x2="336" y2="120"/>
+                <g>
+                  <rect class="barA" x="34"  y="74" width="26" height="46"/><rect class="barB" x="34"  y="52" width="26" height="22"/><rect class="barC" x="34"  y="42" width="26" height="10"/>
+                  <rect class="barA" x="78"  y="66" width="26" height="54"/><rect class="barB" x="78"  y="42" width="26" height="24"/><rect class="barC" x="78"  y="34" width="26" height="8"/>
+                  <rect class="barA" x="122" y="80" width="26" height="40"/><rect class="barB" x="122" y="58" width="26" height="22"/><rect class="barC" x="122" y="50" width="26" height="8"/>
+                  <rect class="barA" x="166" y="58" width="26" height="62"/><rect class="barB" x="166" y="34" width="26" height="24"/><rect class="barC" x="166" y="26" width="26" height="8"/>
+                  <rect class="barA" x="210" y="70" width="26" height="50"/><rect class="barB" x="210" y="46" width="26" height="24"/><rect class="barC" x="210" y="36" width="26" height="10"/>
+                  <rect class="barA" x="254" y="50" width="26" height="70"/><rect class="barB" x="254" y="28" width="26" height="22"/><rect class="barC" x="254" y="20" width="26" height="8"/>
+                  <rect class="barA" x="298" y="62" width="26" height="58"/><rect class="barB" x="298" y="38" width="26" height="24"/><rect class="barC" x="298" y="30" width="26" height="8"/>
+                </g>
+                <text class="axis" x="0" y="24">3M</text><text class="axis" x="0" y="64">2M</text><text class="axis" x="0" y="104">1M</text>
+                <text class="axis" x="36" y="134">Feb</text><text class="axis" x="168" y="134">May</text><text class="axis" x="300" y="134">Aug</text>
+              </svg>
+              <div class="d-legend">
+                <span><i style="background:var(--accent)"></i>Equities</span>
+                <span><i style="background:var(--accent-2)"></i>FX</span>
+                <span><i style="background:var(--surface-3)"></i>Credit</span>
+              </div>
+            </div>
+
+            <div class="d-panel">
+              <div class="d-ph"><h4>Attribution</h4><span class="sub">waterfall, EUR k</span></div>
+              <svg class="d-chart" viewBox="0 0 340 140" role="img" aria-label="Waterfall chart">
+                <line class="grid" x1="20" y1="118" x2="336" y2="118"/>
+                <rect class="barC" x="28"  y="60" width="38" height="58"/>
+                <rect class="pos"  x="76"  y="40" width="38" height="20"/>
+                <rect class="pos"  x="124" y="26" width="38" height="14"/>
+                <rect class="neg"  x="172" y="26" width="38" height="22"/>
+                <rect class="neg"  x="220" y="48" width="38" height="16"/>
+                <rect class="barA" x="268" y="64" width="38" height="54"/>
+                <line class="grid" x1="66"  y1="60" x2="76"  y2="60"/>
+                <line class="grid" x1="114" y1="40" x2="124" y2="40"/>
+                <line class="grid" x1="162" y1="26" x2="172" y2="26"/>
+                <line class="grid" x1="210" y1="48" x2="220" y2="48"/>
+                <line class="grid" x1="258" y1="64" x2="268" y2="64"/>
+                <text class="axis" x="30"  y="132">Open</text><text class="axis" x="80"  y="132">Vol</text>
+                <text class="axis" x="128" y="132">Carry</text><text class="axis" x="174" y="132">Fees</text>
+                <text class="axis" x="222" y="132">FX</text><text class="axis" x="270" y="132">Close</text>
+              </svg>
+            </div>
+          </div>
+
+          <div class="d-grid d-3">
+            <div class="d-panel">
+              <div class="d-ph"><h4>Risk profile</h4></div>
+              <svg class="d-chart" viewBox="0 0 150 140" role="img" aria-label="Radar chart">
+                <polygon class="grid" fill="none" points="75,18 130,58 109,122 41,122 20,58"/>
+                <polygon class="grid" fill="none" points="75,42 108,66 95,105 55,105 42,66"/>
+                <polygon fill="var(--accent)" fill-opacity=".2" stroke="var(--accent)" stroke-width="2"
+                         points="75,30 116,62 98,112 52,104 36,64"/>
+                <circle class="dot" cx="75" cy="30" r="2.5"/><circle class="dot" cx="116" cy="62" r="2.5"/>
+                <circle class="dot" cx="98" cy="112" r="2.5"/><circle class="dot" cx="52" cy="104" r="2.5"/>
+                <circle class="dot" cx="36" cy="64" r="2.5"/>
+                <text class="axis" x="66" y="12">Vol</text><text class="axis" x="132" y="58">Liq</text>
+                <text class="axis" x="98" y="136">Credit</text><text class="axis" x="30" y="136">Ops</text>
+                <text class="axis" x="0" y="58">Mkt</text>
+              </svg>
+            </div>
+
+            <div class="d-panel">
+              <div class="d-ph"><h4>Correlation</h4></div>
+              <svg class="d-chart" viewBox="0 0 150 140" role="img" aria-label="Scatter plot">
+                <line class="grid" x1="22" y1="118" x2="144" y2="118"/>
+                <line class="grid" x1="22" y1="10"  x2="22"  y2="118"/>
+                <line class="ser2" x1="26" y1="108" x2="140" y2="26"/>
+                <circle class="dot" cx="38"  cy="100" r="3"/><circle class="dot" cx="52" cy="92" r="3"/>
+                <circle class="dot" cx="61"  cy="84"  r="3"/><circle class="dot" cx="74" cy="80" r="3"/>
+                <circle class="dot" cx="83"  cy="66"  r="3"/><circle class="dot" cx="96" cy="60" r="3"/>
+                <circle class="dot" cx="106" cy="48"  r="3"/><circle class="dot" cx="118" cy="42" r="3"/>
+                <circle class="dot" cx="131" cy="30"  r="3"/><circle class="dot" cx="66" cy="58" r="3" opacity=".45"/>
+                <text class="axis" x="60" y="134">exposure</text>
+              </svg>
+            </div>
+
+            <div class="d-panel">
+              <div class="d-ph"><h4>Capital used</h4></div>
+              <div class="d-gauge">
+                <div class="g" style="--g:58%"><span>72%</span></div>
+                <div class="k-stack" style="gap:3px">
+                  <small>&euro;3.6M of &euro;5.0M</small>
+                  <span class="d-delta up">&#9650; 4pp</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid d-2">
+            <div class="d-panel">
+              <div class="d-ph"><h4>Top counterparties</h4><span class="sub">by notional</span></div>
+              <div class="d-hbars">
+                <div class="d-hbar"><span class="nm">Halvorsen</span><span class="tr"><i style="width:92%"></i></span><span class="vv">&euro;1.24M</span></div>
+                <div class="d-hbar"><span class="nm">Kestrel</span><span class="tr"><i style="width:74%"></i></span><span class="vv">&euro;0.99M</span></div>
+                <div class="d-hbar"><span class="nm">Ravenna</span><span class="tr"><i style="width:57%"></i></span><span class="vv">&euro;0.77M</span></div>
+                <div class="d-hbar"><span class="nm">Orchard</span><span class="tr"><i style="width:41%"></i></span><span class="vv">&euro;0.55M</span></div>
+                <div class="d-hbar"><span class="nm">Bellweather</span><span class="tr"><i style="width:23%"></i></span><span class="vv">&euro;0.31M</span></div>
+              </div>
+            </div>
+
+            <div class="d-panel">
+              <div class="d-ph"><h4>Trading activity</h4><span class="sub">26 weeks</span></div>
+              <div class="d-heat"><i style="opacity:0.5"></i><i style="opacity:0.08"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.5"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.5"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.5"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.5"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.5"></i><i style="opacity:0.5"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:1"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:1"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:1"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.74"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:1"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:1"></i><i style="opacity:0.08"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.74"></i><i style="opacity:1"></i><i style="opacity:0.28"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.5"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:1"></i><i style="opacity:0.74"></i><i style="opacity:0.08"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:1"></i><i style="opacity:0.08"></i><i style="opacity:0.5"></i><i style="opacity:0.74"></i><i style="opacity:0.28"></i><i style="opacity:0.08"></i></div>
+              <div class="d-legend"><span>Less</span>
+                <span><i style="background:var(--accent);opacity:.2"></i></span>
+                <span><i style="background:var(--accent);opacity:.45"></i></span>
+                <span><i style="background:var(--accent);opacity:.7"></i></span>
+                <span><i style="background:var(--accent)"></i></span>
+                <span>More</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid d-2">
+            <div class="d-panel">
+              <div class="d-ph"><h4>Exposure treemap</h4></div>
+              <div class="d-tree">
+                <div style="flex:2">
+                  <span class="cell" style="background:var(--accent);flex:3"><b>Equities</b>42%</span>
+                  <span class="cell" style="background:var(--accent);opacity:.72;flex:2"><b>Rates</b>18%</span>
+                </div>
+                <div style="flex:1">
+                  <span class="cell" style="background:var(--accent-2);flex:2"><b>FX</b>22%</span>
+                  <span class="cell" style="background:var(--accent-2);opacity:.6;flex:1"><b>Credit</b>11%</span>
+                  <span class="cell" style="background:var(--ink-3);flex:1" ><b>Cash</b>7%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-panel">
+              <div class="d-ph"><h4>Conversion funnel</h4></div>
+              <div class="k-stack" style="gap:5px">
+                <div style="background:var(--accent);color:var(--on-accent);padding:8px 12px;border-radius:var(--r-sm);display:flex;justify-content:space-between;font-size:11.5px;width:100%">Leads<b>12,480</b></div>
+                <div style="background:var(--accent);opacity:.82;color:var(--on-accent);padding:8px 12px;border-radius:var(--r-sm);display:flex;justify-content:space-between;font-size:11.5px;width:82%;margin:0 auto">Qualified<b>7,210</b></div>
+                <div style="background:var(--accent);opacity:.64;color:var(--on-accent);padding:8px 12px;border-radius:var(--r-sm);display:flex;justify-content:space-between;font-size:11.5px;width:62%;margin:0 auto">Demo<b>3,004</b></div>
+                <div style="background:var(--accent);opacity:.46;color:var(--on-accent);padding:8px 12px;border-radius:var(--r-sm);display:flex;justify-content:space-between;font-size:11.5px;width:44%;margin:0 auto">Trial<b>1,180</b></div>
+                <div style="background:var(--ok);color:#fff;padding:8px 12px;border-radius:var(--r-sm);display:flex;justify-content:space-between;font-size:11.5px;width:26%;margin:0 auto">Won<b>412</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════ D3 · MARKETS ══════ -->
+        <div class="k-group d-only">
+          <div class="k-gtitle">D3 — Markets</div>
+
+          <div class="d-ticker">
+            <div class="tape">
+              <span><b>EURUSD</b> 1.0842 <span class="d-up">&#9650;0.21%</span></span>
+              <span><b>BTCEUR</b> 58,204 <span class="d-dn">&#9660;1.84%</span></span>
+              <span><b>AAPL</b> 224.18 <span class="d-up">&#9650;0.62%</span></span>
+              <span><b>DAX</b> 18,442 <span class="d-up">&#9650;0.34%</span></span>
+              <span><b>BRENT</b> 78.90 <span class="d-dn">&#9660;0.47%</span></span>
+              <span><b>GOLD</b> 2,412 <span class="d-up">&#9650;0.11%</span></span>
+              <span><b>EURUSD</b> 1.0842 <span class="d-up">&#9650;0.21%</span></span>
+              <span><b>BTCEUR</b> 58,204 <span class="d-dn">&#9660;1.84%</span></span>
+              <span><b>AAPL</b> 224.18 <span class="d-up">&#9650;0.62%</span></span>
+              <span><b>DAX</b> 18,442 <span class="d-up">&#9650;0.34%</span></span>
+              <span><b>BRENT</b> 78.90 <span class="d-dn">&#9660;0.47%</span></span>
+              <span><b>GOLD</b> 2,412 <span class="d-up">&#9650;0.11%</span></span>
+            </div>
+          </div>
+
+          <div class="d-grid d-wide">
+            <div class="d-panel">
+              <div class="d-ph">
+                <div class="k-row" style="gap:10px"><h4>EURUSD</h4><span class="d-delta up">&#9650; 0.21%</span></div>
+                <span class="sub">1H &middot; OHLC</span>
+              </div>
+              <svg class="d-chart" viewBox="0 0 340 150" role="img" aria-label="Candlestick chart">
+                <line class="grid" x1="26" y1="20" x2="336" y2="20"/>
+                <line class="grid" x1="26" y1="55" x2="336" y2="55"/>
+                <line class="grid" x1="26" y1="90" x2="336" y2="90"/>
+                <line class="grid" x1="26" y1="125" x2="336" y2="125"/>
+                <text class="axis" x="0" y="24">1.088</text><text class="axis" x="0" y="59">1.086</text>
+                <text class="axis" x="0" y="94">1.084</text><text class="axis" x="0" y="129">1.082</text>
+                <g>
+                  <line class="wick" x1="36"  y1="92"  x2="36"  y2="118"/><rect class="pos" x="31"  y="98"  width="10" height="16"/>
+                  <line class="wick" x1="56"  y1="84"  x2="56"  y2="106"/><rect class="pos" x="51"  y="90"  width="10" height="12"/>
+                  <line class="wick" x1="76"  y1="78"  x2="76"  y2="102"/><rect class="neg" x="71"  y="84"  width="10" height="14"/>
+                  <line class="wick" x1="96"  y1="86"  x2="96"  y2="110"/><rect class="pos" x="91"  y="90"  width="10" height="16"/>
+                  <line class="wick" x1="116" y1="72"  x2="116" y2="96"/><rect class="pos" x="111" y="78"  width="10" height="14"/>
+                  <line class="wick" x1="136" y1="66"  x2="136" y2="90"/><rect class="neg" x="131" y="72"  width="10" height="13"/>
+                  <line class="wick" x1="156" y1="74"  x2="156" y2="96"/><rect class="pos" x="151" y="78"  width="10" height="14"/>
+                  <line class="wick" x1="176" y1="58"  x2="176" y2="84"/><rect class="pos" x="171" y="64"  width="10" height="15"/>
+                  <line class="wick" x1="196" y1="52"  x2="196" y2="76"/><rect class="neg" x="191" y="58"  width="10" height="12"/>
+                  <line class="wick" x1="216" y1="60"  x2="216" y2="84"/><rect class="pos" x="211" y="64"  width="10" height="16"/>
+                  <line class="wick" x1="236" y1="44"  x2="236" y2="70"/><rect class="pos" x="231" y="50"  width="10" height="14"/>
+                  <line class="wick" x1="256" y1="38"  x2="256" y2="62"/><rect class="neg" x="251" y="44"  width="10" height="13"/>
+                  <line class="wick" x1="276" y1="46"  x2="276" y2="68"/><rect class="pos" x="271" y="50"  width="10" height="14"/>
+                  <line class="wick" x1="296" y1="30"  x2="296" y2="56"/><rect class="pos" x="291" y="36"  width="10" height="15"/>
+                  <line class="wick" x1="316" y1="24"  x2="316" y2="48"/><rect class="pos" x="311" y="28"  width="10" height="14"/>
+                </g>
+                <text class="axis" x="28" y="143">09:00</text><text class="axis" x="160" y="143">12:00</text><text class="axis" x="298" y="143">15:00</text>
+              </svg>
+            </div>
+
+            <div class="d-panel" style="padding:0;overflow:hidden">
+              <div style="padding:13px 15px;border-bottom:var(--bw) var(--bstyle) var(--bc)">
+                <div class="d-ph"><h4>Order book</h4><span class="sub">EURUSD</span></div>
+              </div>
+              <div class="d-book">
+                <div class="side">
+                  <div class="r ask"><i style="width:34%"></i><span class="p">1.08472</span><span class="q">840k</span></div>
+                  <div class="r ask"><i style="width:52%"></i><span class="p">1.08466</span><span class="q">1.2M</span></div>
+                  <div class="r ask"><i style="width:71%"></i><span class="p">1.08459</span><span class="q">1.8M</span></div>
+                  <div class="r ask"><i style="width:44%"></i><span class="p">1.08451</span><span class="q">1.0M</span></div>
+                </div>
+                <div class="side">
+                  <div class="r bid"><i style="width:62%"></i><span class="p">1.08438</span><span class="q">1.5M</span></div>
+                  <div class="r bid"><i style="width:38%"></i><span class="p">1.08431</span><span class="q">910k</span></div>
+                  <div class="r bid"><i style="width:80%"></i><span class="p">1.08425</span><span class="q">2.1M</span></div>
+                  <div class="r bid"><i style="width:29%"></i><span class="p">1.08419</span><span class="q">680k</span></div>
+                </div>
+                <div class="d-spread">spread 1.3 pips &middot; mid 1.084445</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-tw">
+            <table class="d-table">
+              <thead><tr><th>Instrument</th><th>Side</th><th class="num">Qty</th><th class="num">Avg price</th><th class="num">Mark</th><th class="num">Unrealised</th><th class="num">%</th><th>30d</th></tr></thead>
+              <tbody>
+                <tr><td>EURUSD</td><td><span class="k-badge ok">LONG</span></td><td class="num">2,400,000</td><td class="num">1.08210</td><td class="num">1.08445</td><td class="num d-up">+&euro;5,640</td><td class="num"><span class="heat" style="background:var(--ok-soft);color:var(--ok)">+0.22%</span></td><td><svg class="mini" viewBox="0 0 56 16" preserveAspectRatio="none"><polyline class="ser1" style="stroke-width:1.5" points="0,12 8,10 16,11 24,7 32,8 40,5 48,6 56,3"/></svg></td></tr>
+                <tr><td>BTCEUR</td><td><span class="k-badge err">SHORT</span></td><td class="num">14.5</td><td class="num">59,120</td><td class="num">58,204</td><td class="num d-up">+&euro;13,282</td><td class="num"><span class="heat" style="background:var(--ok-soft);color:var(--ok)">+1.55%</span></td><td><svg class="mini" viewBox="0 0 56 16" preserveAspectRatio="none"><polyline class="ser1" style="stroke-width:1.5;stroke:var(--ok)" points="0,4 8,6 16,5 24,9 32,8 40,12 48,11 56,13"/></svg></td></tr>
+                <tr><td>AAPL</td><td><span class="k-badge ok">LONG</span></td><td class="num">3,200</td><td class="num">228.40</td><td class="num">224.18</td><td class="num d-dn">&minus;&euro;12,410</td><td class="num"><span class="heat" style="background:var(--err-soft);color:var(--err)">&minus;1.85%</span></td><td><svg class="mini" viewBox="0 0 56 16" preserveAspectRatio="none"><polyline class="ser1" style="stroke-width:1.5;stroke:var(--err)" points="0,4 8,5 16,7 24,6 32,10 40,9 48,12 56,13"/></svg></td></tr>
+                <tr><td>DAX Future</td><td><span class="k-badge ok">LONG</span></td><td class="num">18</td><td class="num">18,390</td><td class="num">18,442</td><td class="num d-up">+&euro;2,340</td><td class="num"><span class="heat" style="background:var(--ok-soft);color:var(--ok)">+0.28%</span></td><td><svg class="mini" viewBox="0 0 56 16" preserveAspectRatio="none"><polyline class="ser1" style="stroke-width:1.5" points="0,10 8,9 16,11 24,8 32,7 40,8 48,5 56,4"/></svg></td></tr>
+              </tbody>
+              <tfoot><tr><td>Net</td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num d-up">+&euro;8,852</td><td class="num">+0.18%</td><td></td></tr></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- ══════ D4 · FINANCE ══════ -->
+        <div class="k-group d-only">
+          <div class="k-gtitle">D4 — Statements &amp; payments</div>
+
+          <div class="d-grid d-2">
+            <div class="d-panel">
+              <div class="d-ph"><h4>Profit &amp; loss</h4><span class="sub">Q3 2026, EUR</span></div>
+              <div class="d-stmt">
+                <div class="li"><span>Revenue</span><span class="v">4,820,400</span></div>
+                <div class="li ind"><span>Trading</span><span class="v">3,104,200</span></div>
+                <div class="li ind"><span>Fees &amp; commission</span><span class="v">1,716,200</span></div>
+                <div class="li"><span>Cost of revenue</span><span class="v">(1,522,880)</span></div>
+                <div class="li"><span>Operating expenses</span><span class="v">(986,410)</span></div>
+                <div class="li ind"><span>Personnel</span><span class="v">(714,300)</span></div>
+                <div class="li ind"><span>Technology</span><span class="v">(272,110)</span></div>
+                <div class="li tot"><span>Net profit</span><span class="v">2,311,110</span></div>
+              </div>
+            </div>
+
+            <div class="d-panel">
+              <div class="d-ph"><h4>Portfolio allocation</h4></div>
+              <div class="d-alloc">
+                <i style="width:42%;background:var(--accent)"></i>
+                <i style="width:22%;background:var(--accent-2)"></i>
+                <i style="width:18%;background:var(--ok)"></i>
+                <i style="width:11%;background:var(--warn)"></i>
+                <i style="width:7%;background:var(--ink-3)"></i>
+              </div>
+              <div class="d-legend">
+                <span><i style="background:var(--accent)"></i>Equities 42%</span>
+                <span><i style="background:var(--accent-2)"></i>FX 22%</span>
+                <span><i style="background:var(--ok)"></i>Rates 18%</span>
+                <span><i style="background:var(--warn)"></i>Credit 11%</span>
+                <span><i style="background:var(--ink-3)"></i>Cash 7%</span>
+              </div>
+              <div class="d-ph" style="margin-top:6px"><h4 style="font-size:13px">Budget vs actual</h4></div>
+              <div class="d-hbars">
+                <div class="d-hbar"><span class="nm">Personnel</span><span class="tr"><i style="width:88%"></i></span><span class="vv">88%</span></div>
+                <div class="d-hbar"><span class="nm">Technology</span><span class="tr"><i style="width:104%;background:var(--err)"></i></span><span class="vv" style="color:var(--err)">104%</span></div>
+                <div class="d-hbar"><span class="nm">Marketing</span><span class="tr"><i style="width:61%"></i></span><span class="vv">61%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid d-2">
+            <div class="d-panel">
+              <div class="d-ph"><h4>Recent transactions</h4><span class="sub">settled</span></div>
+              <div class="d-scroll">
+                <div class="d-stmt">
+                  <div class="li"><span>26 Aug &middot; Halvorsen &amp; Co</span><span class="v d-up">+48,200</span></div>
+                  <div class="li"><span>26 Aug &middot; Clearing fee</span><span class="v d-dn">&minus;1,204</span></div>
+                  <div class="li"><span>25 Aug &middot; Kestrel Labs</span><span class="v d-up">+31,850</span></div>
+                  <div class="li"><span>25 Aug &middot; FX settlement</span><span class="v d-dn">&minus;12,006</span></div>
+                  <div class="li"><span>24 Aug &middot; Ravenna Studio</span><span class="v d-up">+18,420</span></div>
+                  <div class="li"><span>24 Aug &middot; Custody</span><span class="v d-dn">&minus;3,110</span></div>
+                  <div class="li"><span>23 Aug &middot; Orchard Bank</span><span class="v d-up">+64,900</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="k-stack">
+              <div class="d-card">
+                <div class="chip"></div>
+                <div class="no">4102&nbsp;&nbsp;&bull;&bull;&bull;&bull;&nbsp;&nbsp;&bull;&bull;&bull;&bull;&nbsp;&nbsp;8814</div>
+                <div class="rw"><span>A. LOVELACE</span><span>09 / 29</span></div>
+              </div>
+              <div class="d-panel">
+                <div class="d-ph"><h4 style="font-size:13px">Settlement</h4></div>
+                <div class="d-stmt">
+                  <div class="li"><span>Subtotal</span><span class="v">2,400.00</span></div>
+                  <div class="li"><span>VAT 21%</span><span class="v">504.00</span></div>
+                  <div class="li"><span>Fee</span><span class="v">12.50</span></div>
+                  <div class="li tot"><span>Total due</span><span class="v">&euro;2,916.50</span></div>
+                </div>
+                <button class="k-btn block">Authorise payment</button>
+              </div>
+            </div>
+          </div>
+        </div>

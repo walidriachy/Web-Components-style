@@ -1,0 +1,788 @@
+<script>
+/* ============================================================
+   INTERACTION ENGINE
+   Every control in the kit does something and says so. The
+   universal feedback channel is toast(); anything with its own
+   visible result (a toggle, a sort, a selection) shows that too.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var kit     = document.getElementById("kit");
+  var toasts  = document.getElementById("toasts");
+  var scrim   = document.getElementById("scrim");
+  var tiplayer= document.getElementById("tiplayer");
+  if (!kit) return;
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ─────────── universal feedback ─────────── */
+  function toast(title, sub, kind) {
+    var t = document.createElement("div");
+    t.className = "k-toast";
+    var icon = kind === "ok" ? "&#10003;" : kind === "err" ? "&#10007;" : kind === "warn" ? "&#9888;" : "&#9432;";
+    var col  = kind === "ok" ? "var(--ok)" : kind === "err" ? "var(--err)" : kind === "warn" ? "var(--warn)" : "var(--accent)";
+    t.innerHTML = '<i style="font-style:normal;font-size:15px;color:' + col + '">' + icon + '</i>' +
+                  '<span class="tx"><b></b>' + (sub ? "<small></small>" : "") + "</span>" +
+                  '<span class="cl">&times;</span>';
+    t.querySelector("b").textContent = title;
+    if (sub) t.querySelector("small").textContent = sub;
+    var kill = function () {
+      if (!t.parentNode) return;
+      t.classList.add("out");
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, reduced ? 0 : 220);
+    };
+    t.querySelector(".cl").addEventListener("click", kill);
+    toasts.appendChild(t);
+    while (toasts.children.length > 4) toasts.removeChild(toasts.firstChild);
+    setTimeout(kill, 3200);
+  }
+
+  function ripple(el, ev) {
+    if (reduced) return;
+    var r = el.getBoundingClientRect();
+    var d = Math.max(r.width, r.height);
+    var s = document.createElement("span");
+    s.className = "k-ripple";
+    s.style.width = s.style.height = d + "px";
+    s.style.left = ((ev.clientX || r.left + r.width / 2) - r.left - d / 2) + "px";
+    s.style.top  = ((ev.clientY || r.top + r.height / 2) - r.top  - d / 2) + "px";
+    el.appendChild(s);
+    setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 560);
+  }
+
+  var RIPPLE_SEL = ".k-btn,.k-seg span,.k-page span,.k-tabs span,.k-side a,.k-menu a," +
+                   ".k-cmdk .res a,.k-kcard,.k-gal i,.k-cal .cg span:not(.dow),.k-fab,.k-chip";
+  kit.addEventListener("pointerdown", function (e) {
+    var el = e.target.closest(RIPPLE_SEL);
+    if (el && !el.disabled) ripple(el, e);
+  });
+
+  /* pick one of a set of siblings */
+  function only(el, sibSel, cls) {
+    var scope = el.parentNode;
+    Array.prototype.forEach.call(scope.querySelectorAll(sibSel), function (s) { s.classList.remove(cls); });
+    el.classList.add(cls);
+  }
+
+  /* ─────────── delegated clicks ─────────── */
+  kit.addEventListener("click", function (e) {
+    var t = e.target;
+
+    /* --- explicit actions --- */
+    var act = t.closest("[data-act]");
+    if (act) {
+      e.preventDefault();
+      var a = act.dataset.act;
+      if (a === "open-dialog") openDialog();
+      if (a === "close-dialog") closeDialog();
+      return;
+    }
+
+    /* --- copy buttons --- */
+    var cp = t.closest(".k-copy");
+    if (cp && !cp.dataset.act) {
+      e.preventDefault();
+      var block = cp.parentNode.querySelector(".k-code");
+      copy(block ? block.innerText : "", cp);
+      return;
+    }
+
+    /* --- tabs --- */
+    var tab = t.closest(".k-tabs span");
+    if (tab) {
+      only(tab, "span", "on");
+      var idx = Array.prototype.indexOf.call(tab.parentNode.children, tab);
+      Array.prototype.forEach.call(kit.querySelectorAll(".k-tabpanel"), function (p) {
+        p.hidden = Number(p.dataset.panel) !== idx;
+      });
+      return;
+    }
+
+    /* --- segmented / button group / sidebar / nav / menu / command palette --- */
+    var seg = t.closest(".k-seg span");
+    if (seg) { only(seg, "span", "on"); toast("View changed", seg.textContent + " view"); return; }
+
+    var bg = t.closest(".k-bgroup .k-btn");
+    if (bg) {
+      Array.prototype.forEach.call(bg.parentNode.children, function (b) { b.classList.add("sec"); });
+      bg.classList.remove("sec");
+      toast("Range set", "Showing by " + bg.textContent.toLowerCase());
+      return;
+    }
+
+    var side = t.closest(".k-side a");
+    if (side) { e.preventDefault(); only(side, "a", "on"); toast(side.textContent.replace(/^\W+\s*/, ""), "Section opened"); return; }
+
+    var nl = t.closest(".k-navlinks a, .k-navlinks b");
+    if (nl) {
+      e.preventDefault();
+      var wrap = nl.parentNode, label = nl.textContent;
+      wrap.innerHTML = "";
+      ["Overview", "Reports", "Team", "Billing"].forEach(function (n) {
+        var node = document.createElement(n === label ? "b" : "a");
+        if (n !== label) node.href = "#0";
+        node.textContent = n;
+        wrap.appendChild(node);
+      });
+      toast(label, "Navigated");
+      return;
+    }
+
+    var mi = t.closest(".k-menu a, .k-cmdk .res a");
+    if (mi) {
+      e.preventDefault();
+      only(mi, "a", "on");
+      var txt = mi.firstChild.textContent.trim();
+      toast(txt, /delete/i.test(txt) ? "Nothing was actually deleted" : "Action ran", /delete/i.test(txt) ? "warn" : "ok");
+      return;
+    }
+
+    /* --- breadcrumbs --- */
+    var cr = t.closest(".k-crumb a");
+    if (cr) { e.preventDefault(); toast("Back to " + cr.textContent, "Breadcrumb"); return; }
+
+    /* --- pagination --- */
+    var pg = t.closest(".k-page span");
+    if (pg) {
+      var kids = Array.prototype.slice.call(pg.parentNode.children);
+      var nums = kids.filter(function (k) { return /^\d+$/.test(k.textContent); });
+      var cur  = kids.find(function (k) { return k.classList.contains("on"); });
+      var target = pg;
+      if (pg.textContent === "←") target = nums[Math.max(0, nums.indexOf(cur) - 1)];
+      else if (pg.textContent === "→") target = nums[Math.min(nums.length - 1, nums.indexOf(cur) + 1)];
+      else if (!/^\d+$/.test(pg.textContent)) { toast("Jump to page", "Enter a page number"); return; }
+      kids.forEach(function (k) { k.classList.remove("on"); });
+      target.classList.add("on");
+      toast("Page " + target.textContent, "Showing results " + ((target.textContent - 1) * 25 + 1) + "–" + target.textContent * 25);
+      return;
+    }
+
+    /* --- stepper --- */
+    var st = t.closest(".k-step");
+    if (st) {
+      var steps = Array.prototype.slice.call(st.parentNode.children);
+      var i = steps.indexOf(st);
+      steps.forEach(function (s, n) {
+        s.classList.toggle("done", n < i);
+        s.classList.toggle("on", n === i);
+        s.querySelector("i").innerHTML = n < i ? "&#10003;" : String(n + 1);
+      });
+      toast("Step " + (i + 1) + " — " + st.querySelector("em").textContent, "Wizard advanced");
+      return;
+    }
+
+    /* --- checkboxes, radios, switches --- */
+    var ck = t.closest(".k-check");
+    if (ck) {
+      if (ck.dataset.radio) {
+        Array.prototype.forEach.call(kit.querySelectorAll('[data-radio="' + ck.dataset.radio + '"]'), function (r) { r.classList.remove("on"); });
+        ck.classList.add("on");
+        toast(ck.textContent.trim(), "Selected");
+      } else {
+        ck.classList.toggle("on");
+        ck.querySelector("i").innerHTML = ck.classList.contains("on") && !ck.classList.contains("radio") ? "&#10003;" : "";
+        toast(ck.textContent.trim(), ck.classList.contains("on") ? "Turned on" : "Turned off", ck.classList.contains("on") ? "ok" : null);
+      }
+      return;
+    }
+
+    var sw = t.closest(".k-switch");
+    if (sw) {
+      sw.classList.toggle("on");
+      var lbl = sw.parentNode.querySelector("small");
+      toast(lbl ? lbl.textContent : "Switch", sw.classList.contains("on") ? "Enabled" : "Disabled", sw.classList.contains("on") ? "ok" : "warn");
+      return;
+    }
+
+    /* --- chips --- */
+    var cx = t.closest(".k-chip b");
+    if (cx) { var chip = cx.parentNode; toast("Removed “" + chip.firstChild.textContent.trim() + "”", "Tag deleted"); chip.remove(); return; }
+
+    /* --- alerts dismiss --- */
+    var ax = t.closest(".k-alert .x");
+    if (ax) { ax.closest(".k-alert").remove(); toast("Alert dismissed"); return; }
+
+    /* --- table sorting + row select --- */
+    var th = t.closest(".k-table th[data-sort]");
+    if (th) { sortTable(th); return; }
+    var tr = t.closest(".k-table tbody tr");
+    if (tr) {
+      only(tr, "tr", "sel");
+      toast(tr.cells[0].textContent, tr.cells[3].textContent + " MRR · " + tr.cells[4].textContent + " seats");
+      return;
+    }
+
+    /* --- accordion --- */
+    var aq = t.closest(".k-acc .aq");
+    if (aq) {
+      var item = aq.parentNode, wasOpen = item.classList.contains("open");
+      Array.prototype.forEach.call(item.parentNode.children, function (it) {
+        it.classList.remove("open");
+        var sp = it.querySelector(".aq span"); if (sp) sp.innerHTML = "&#43;";
+      });
+      if (!wasOpen) {
+        item.classList.add("open");
+        aq.querySelector("span").innerHTML = "&minus;";
+        if (!item.querySelector(".aa")) {
+          var d = document.createElement("div");
+          d.className = "aa";
+          d.textContent = "Yes. Reach out to sales@northwind.io and we'll sort it out the same day.";
+          item.appendChild(d);
+        }
+      }
+      return;
+    }
+
+    /* --- pricing --- */
+    var pr = t.closest(".k-price");
+    if (pr && !t.closest(".k-btn")) {
+      only(pr, ".k-price", "sel");
+      toast(pr.querySelector(".k-lab").textContent + " selected", pr.querySelector(".amt").textContent.trim());
+      return;
+    }
+
+    /* --- kanban: click a card to move it forward --- */
+    var kc = t.closest(".k-kcard");
+    if (kc) {
+      var col = kc.closest(".k-kcol");
+      var cols = Array.prototype.slice.call(col.parentNode.children);
+      var next = cols[cols.indexOf(col) + 1];
+      if (next) {
+        next.appendChild(kc);
+        toast(kc.querySelector("strong").textContent, "Moved to " + next.querySelector(".kh span").textContent);
+      } else toast(kc.querySelector("strong").textContent, "Already shipped", "ok");
+      cols.forEach(function (c) { c.querySelector(".kh span:last-child").textContent = c.querySelectorAll(".k-kcard").length; });
+      return;
+    }
+
+    /* --- file tree --- */
+    var tn = t.closest(".k-tree span");
+    if (tn) {
+      var label = tn.textContent.trim();
+      if (/▶/.test(label)) { tn.innerHTML = tn.innerHTML.replace("▶", "▼"); toast(label.replace(/[▶▼]\s*/, ""), "Folder expanded"); }
+      else if (/▼/.test(label)) { tn.innerHTML = tn.innerHTML.replace("▼", "▶"); toast(label.replace(/[▶▼]\s*/, ""), "Folder collapsed"); }
+      else { only(tn, "span", "on"); toast(label, "File opened"); }
+      return;
+    }
+
+    /* --- gallery --- */
+    var gi = t.closest(".k-gal i");
+    if (gi) {
+      gi.classList.toggle("sel");
+      var n = kit.querySelectorAll(".k-gal i.sel").length;
+      toast(n ? n + " image" + (n > 1 ? "s" : "") + " selected" : "Selection cleared");
+      return;
+    }
+
+    /* --- avatars --- */
+    var av = t.closest(".k-av");
+    if (av) { toast(av.textContent, "Profile"); return; }
+
+    /* --- skeleton resolves --- */
+    var sk = t.closest("[data-skel]");
+    if (sk) {
+      sk.innerHTML = "<strong>Q3 revenue report</strong><small>Generated 26 Aug 2026 · 4 pages</small>";
+      sk.style.gap = "3px";
+      toast("Loaded", "Content resolved", "ok");
+      return;
+    }
+
+    /* --- video --- */
+    var vd = t.closest(".k-video");
+    if (vd) { toggleVideo(vd); return; }
+
+    /* --- charts --- */
+    var bar = t.closest(".k-bars i");
+    if (bar) {
+      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug"];
+      var bi = Array.prototype.indexOf.call(bar.parentNode.children, bar);
+      toast(months[bi] + " — $" + (parseInt(bar.style.height) * 480).toLocaleString(), "Monthly revenue");
+      return;
+    }
+
+    /* --- stat tiles --- */
+    var stt = t.closest(".k-stat");
+    if (stt) { toast(stt.querySelector(".lb").textContent, stt.querySelector(".vl").textContent + " · " + stt.querySelector(".dt").textContent); return; }
+
+    /* --- timeline --- */
+    var ti = t.closest(".k-time .ti");
+    if (ti) { toast(ti.querySelector("b").textContent, ti.querySelector("small").textContent); return; }
+
+    /* --- list rows --- */
+    var li = t.closest(".k-list .li");
+    if (li) { toast(li.querySelector("b").textContent, li.querySelector("small").textContent); return; }
+
+    /* --- FAB --- */
+    if (t.closest(".k-fab")) { toast("Quick create", "Report, dashboard or alert", "ok"); return; }
+
+    /* --- generic buttons: everything left over still answers --- */
+    var b = t.closest(".k-btn");
+    if (b) {
+      if (b.disabled) return;
+      e.preventDefault();
+      var label = b.textContent.trim();
+      if (/^Saving/.test(label)) return simulateSave(b);
+      if (/plain text link/i.test(label)) return;
+      var kind = b.classList.contains("danger") ? "warn" : "ok";
+      toast(label || "Button", b.classList.contains("danger") ? "Nothing was actually deleted" : "Action completed", kind);
+      return;
+    }
+
+    /* --- plain links --- */
+    var lk = t.closest('a[href="#0"]');
+    if (lk) { e.preventDefault(); toast(lk.textContent.trim(), "Link followed"); }
+  });
+
+  /* ─────────── save simulation ─────────── */
+  function simulateSave(b) {
+    if (b.dataset.busy) return;
+    b.dataset.busy = "1";
+    var original = b.innerHTML;
+    setTimeout(function () {
+      b.innerHTML = "&#10003; Saved";
+      toast("Changes saved", "All 4 fields written", "ok");
+      setTimeout(function () { b.innerHTML = original; delete b.dataset.busy; }, 1600);
+    }, 900);
+  }
+
+  /* ─────────── clipboard ─────────── */
+  function copy(text, btn) {
+    var done = function (ok) {
+      if (btn) { var o = btn.textContent; btn.textContent = ok ? "Copied" : "Select it"; setTimeout(function () { btn.textContent = o; }, 1400); }
+      toast(ok ? "Copied to clipboard" : "Copy blocked", ok ? text.length + " characters" : "Select the text and copy manually", ok ? "ok" : "warn");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else done(false);
+  }
+
+  /* ─────────── dialog ─────────── */
+  var lastFocus = null;
+  function openDialog() {
+    lastFocus = document.activeElement;
+    scrim.hidden = false;
+    var f = document.getElementById("dlgConfirm");
+    f.value = ""; document.getElementById("dlgGo").disabled = true;
+    setTimeout(function () { f.focus(); }, 30);
+  }
+  function closeDialog() {
+    scrim.hidden = true;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  scrim.addEventListener("click", function (e) { if (e.target === scrim) closeDialog(); });
+  document.getElementById("dlgConfirm").addEventListener("input", function () {
+    document.getElementById("dlgGo").disabled = this.value.trim().toUpperCase() !== "DELETE";
+  });
+  document.getElementById("dlgGo").addEventListener("click", function () {
+    closeDialog();
+    toast("Workspace deleted", "Just kidding — this is a demo", "err");
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !scrim.hidden) closeDialog(); });
+
+  /* ─────────── table sorting ─────────── */
+  (function initTable() {
+    var table = kit.querySelector(".k-table");
+    if (!table) return;
+    Array.prototype.forEach.call(table.tHead.rows[0].cells, function (th, i) {
+      th.dataset.sort = i;
+      th.innerHTML += ' <span class="ar">⇅</span>';
+    });
+  })();
+
+  function sortTable(th) {
+    var table = th.closest("table"), i = Number(th.dataset.sort);
+    var dir = th.dataset.dir === "asc" ? "desc" : "asc";
+    Array.prototype.forEach.call(table.tHead.rows[0].cells, function (c) {
+      c.classList.remove("sorted"); delete c.dataset.dir;
+      c.querySelector(".ar").innerHTML = "⇅";
+    });
+    th.classList.add("sorted"); th.dataset.dir = dir;
+    th.querySelector(".ar").innerHTML = dir === "asc" ? "↑" : "↓";
+    var rows = Array.prototype.slice.call(table.tBodies[0].rows);
+    var num = function (s) { var v = parseFloat(String(s).replace(/[^0-9.\-]/g, "")); return isNaN(v) ? null : v; };
+    rows.sort(function (a, b) {
+      var x = a.cells[i].textContent.trim(), y = b.cells[i].textContent.trim();
+      var nx = num(x), ny = num(y);
+      var r = (nx !== null && ny !== null) ? nx - ny : x.localeCompare(y);
+      return dir === "asc" ? r : -r;
+    });
+    rows.forEach(function (r) { table.tBodies[0].appendChild(r); });
+    toast("Sorted by " + th.textContent.replace("⇅", "").replace(/[↑↓]/, "").trim(), dir === "asc" ? "Ascending" : "Descending");
+  }
+
+  /* ─────────── slider ─────────── */
+  (function initSlider() {
+    var s = kit.querySelector(".k-slider");
+    if (!s) return;
+    var fill = s.querySelector("i"), knob = s.querySelector("b"), val = 62, dragging = false;
+    function paint(v, announce) {
+      val = Math.max(0, Math.min(100, Math.round(v)));
+      fill.style.right = (100 - val) + "%";
+      knob.style.left = val + "%";
+      if (announce) toast("Budget cap", "$" + (val * 120).toLocaleString() + " / month");
+    }
+    function at(e) {
+      var r = s.getBoundingClientRect();
+      paint(((e.clientX - r.left) / r.width) * 100, false);
+    }
+    s.addEventListener("pointerdown", function (e) {
+      dragging = true; s.classList.add("drag"); s.setPointerCapture(e.pointerId); at(e);
+    });
+    s.addEventListener("pointermove", function (e) { if (dragging) at(e); });
+    s.addEventListener("pointerup", function () {
+      if (!dragging) return;
+      dragging = false; s.classList.remove("drag"); paint(val, true);
+    });
+    s.tabIndex = 0;
+    s.setAttribute("role", "slider");
+    s.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "ArrowUp") { paint(val + 4, true); e.preventDefault(); e.stopPropagation(); }
+      if (e.key === "ArrowLeft" || e.key === "ArrowDown") { paint(val - 4, true); e.preventDefault(); e.stopPropagation(); }
+    });
+    paint(62, false);
+  })();
+
+  /* ─────────── star rating ─────────── */
+  (function initStars() {
+    var box = kit.querySelector(".k-stars[data-rating]");
+    if (!box) return;
+    var rating = Number(box.dataset.rating) || 0;
+    function paint(n, preview) {
+      box.innerHTML = "";
+      for (var i = 1; i <= 5; i++) {
+        var s = document.createElement("span");
+        s.textContent = "★";
+        s.style.color = i <= n ? "var(--warn)" : "var(--ink-3)";
+        s.style.opacity = (preview && i <= n) ? ".7" : "1";
+        s.dataset.v = i;
+        box.appendChild(s);
+      }
+    }
+    box.addEventListener("mouseover", function (e) { if (e.target.dataset.v) paint(Number(e.target.dataset.v), true); });
+    box.addEventListener("mouseleave", function () { paint(rating, false); });
+    box.addEventListener("click", function (e) {
+      if (!e.target.dataset.v) return;
+      rating = Number(e.target.dataset.v);
+      paint(rating, false);
+      toast(rating + " star" + (rating > 1 ? "s" : ""), "Rating saved", "ok");
+    });
+    paint(rating, false);
+  })();
+
+  /* ─────────── live form validation ─────────── */
+  (function initForms() {
+    var email = document.getElementById("f2");
+    if (email) {
+      var msg = email.parentNode.querySelector(".k-err-t");
+      email.addEventListener("input", function () {
+        var ok = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(this.value.trim());
+        this.classList.toggle("is-err", !ok);
+        this.classList.toggle("is-ok", ok);
+        msg.className = ok ? "k-ok-t" : "k-err-t";
+        msg.textContent = ok ? "Looks good." : this.value.indexOf("@") === -1 ? "An email address needs an @." : "That address is missing a domain.";
+      });
+    }
+    var slug = document.getElementById("f3");
+    if (slug) {
+      var smsg = slug.parentNode.querySelector(".k-ok-t"), timer;
+      slug.addEventListener("input", function () {
+        var el = this, v = el.value.trim().toLowerCase();
+        clearTimeout(timer);
+        smsg.className = "k-help"; smsg.textContent = "Checking…";
+        timer = setTimeout(function () {
+          var taken = ["admin", "app", "www", "test", "northwind"].indexOf(v) !== -1 || v.length < 3;
+          el.classList.toggle("is-err", taken); el.classList.toggle("is-ok", !taken);
+          smsg.className = taken ? "k-err-t" : "k-ok-t";
+          smsg.textContent = !v ? "Pick a workspace name." : taken ? "“" + v + "” is taken." : "Available — " + v + ".northwind.io";
+        }, 420);
+      });
+    }
+    var ta = document.getElementById("f5"), counter = kit.querySelector("[data-counter]");
+    if (ta && counter) {
+      var max = Number(counter.dataset.counter);
+      ta.addEventListener("input", function () {
+        var left = max - this.value.length;
+        counter.textContent = left;
+        counter.style.color = left < 0 ? "var(--err)" : left < 40 ? "var(--warn)" : "";
+      });
+    }
+    var sel = document.getElementById("f4");
+    if (sel) sel.addEventListener("change", function () { toast("Plan changed", this.value, "ok"); });
+    var name = document.getElementById("f1");
+    if (name) name.addEventListener("change", function () { toast("Name updated", this.value || "(empty)", "ok"); });
+  })();
+
+  /* ─────────── OTP ─────────── */
+  (function initOtp() {
+    var box = kit.querySelector(".k-otp");
+    if (!box) return;
+    var cells = Array.prototype.slice.call(box.children), pos = 0;
+    box.tabIndex = 0;
+    function paint() { cells.forEach(function (c, i) { c.classList.toggle("on", i === pos); }); }
+    box.addEventListener("focus", paint);
+    box.addEventListener("blur", function () { cells.forEach(function (c) { c.classList.remove("on"); }); });
+    box.addEventListener("click", function (e) {
+      var c = e.target.closest("span");
+      if (c) { pos = cells.indexOf(c); box.focus(); paint(); }
+    });
+    box.addEventListener("keydown", function (e) {
+      if (/^\d$/.test(e.key)) {
+        cells[pos].textContent = e.key;
+        pos = Math.min(cells.length - 1, pos + 1); paint(); e.preventDefault();
+        if (cells.every(function (c) { return /\d/.test(c.textContent); }))
+          toast("Code entered", cells.map(function (c) { return c.textContent; }).join("") + " — verified", "ok");
+      } else if (e.key === "Backspace") {
+        cells[pos].textContent = "";
+        pos = Math.max(0, pos - 1); paint(); e.preventDefault();
+      } else if (e.key === "ArrowLeft") { pos = Math.max(0, pos - 1); paint(); e.preventDefault(); e.stopPropagation(); }
+      else if (e.key === "ArrowRight") { pos = Math.min(cells.length - 1, pos + 1); paint(); e.preventDefault(); e.stopPropagation(); }
+    });
+  })();
+
+  /* ─────────── tag input ─────────── */
+  (function initTags() {
+    var wrap = kit.querySelector(".k-taginput"), input = wrap && wrap.querySelector(".tagin");
+    if (!input) return;
+    input.className = "tagin";
+    input.style.cssText = "border:0;background:transparent;outline:0;color:var(--ink);font:inherit;font-size:12px;flex:1;min-width:90px;padding:4px";
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && this.value.trim()) {
+        var chip = document.createElement("span");
+        chip.className = "k-chip";
+        chip.innerHTML = "<b>&times;</b>";
+        chip.insertBefore(document.createTextNode(this.value.trim() + " "), chip.firstChild);
+        wrap.insertBefore(chip, this);
+        toast("Tag added", this.value.trim(), "ok");
+        this.value = ""; e.preventDefault();
+      } else if (e.key === "Backspace" && !this.value) {
+        var last = wrap.querySelectorAll(".k-chip");
+        if (last.length) { toast("Tag removed", last[last.length - 1].firstChild.textContent.trim()); last[last.length - 1].remove(); }
+      }
+    });
+  })();
+
+  /* ─────────── dropzone ─────────── */
+  (function initDrop() {
+    var dz = kit.querySelector(".k-drop");
+    if (!dz) return;
+    dz.style.cursor = "pointer";
+    ["dragenter", "dragover"].forEach(function (ev) {
+      dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add("over"); });
+    });
+    ["dragleave", "drop"].forEach(function (ev) {
+      dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove("over"); });
+    });
+    dz.addEventListener("drop", function (e) {
+      var files = e.dataTransfer && e.dataTransfer.files;
+      if (files && files.length) {
+        addFile(files[0].name, Math.round(files[0].size / 1024) + " KB");
+      } else addFile("dropped-item", "unknown size");
+    });
+    var n = 0;
+    dz.addEventListener("click", function () { n++; addFile("q3-export-" + n + ".csv", (18 + n * 7) + " KB"); });
+    function addFile(name, size) {
+      dz.querySelector("strong").textContent = name;
+      dz.querySelector("small").textContent = size + " · uploaded";
+      toast("File added", name, "ok");
+    }
+  })();
+
+  /* ─────────── calendar ─────────── */
+  (function initCal() {
+    var cal = kit.querySelector(".k-cal");
+    if (!cal) return;
+    var head = cal.querySelector(".ch"), grid = cal.querySelector(".cg");
+    var arrows = head.querySelectorAll("span"), title = arrows[1];
+    var MON = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    var y = 2026, m = 7, sel = 26;
+
+    function render() {
+      title.textContent = MON[m] + " " + y;
+      grid.innerHTML = "";
+      ["M","T","W","T","F","S","S"].forEach(function (d) {
+        var s = document.createElement("span"); s.className = "dow"; s.textContent = d; grid.appendChild(s);
+      });
+      var first = new Date(y, m, 1).getDay();          // 0=Sun
+      var lead  = (first + 6) % 7;                      // Monday-first
+      var days  = new Date(y, m + 1, 0).getDate();
+      var prev  = new Date(y, m, 0).getDate();
+      for (var i = lead; i > 0; i--) add(prev - i + 1, "mut");
+      for (var d = 1; d <= days; d++) add(d, d === sel ? "on" : "");
+      var tail = (7 - ((lead + days) % 7)) % 7;
+      for (var t = 1; t <= tail; t++) add(t, "mut");
+      function add(n, cls) {
+        var s = document.createElement("span");
+        s.textContent = n; if (cls) s.className = cls;
+        if (cls !== "mut") s.dataset.day = n;
+        grid.appendChild(s);
+      }
+    }
+    arrows[0].style.cursor = arrows[2].style.cursor = "pointer";
+    arrows[0].addEventListener("click", function () { m--; if (m < 0) { m = 11; y--; } sel = 0; render(); toast(MON[m] + " " + y, "Previous month"); });
+    arrows[2].addEventListener("click", function () { m++; if (m > 11) { m = 0; y++; } sel = 0; render(); toast(MON[m] + " " + y, "Next month"); });
+    grid.addEventListener("click", function (e) {
+      var s = e.target.closest("span[data-day]");
+      if (!s) return;
+      sel = Number(s.dataset.day); render();
+      toast(sel + " " + MON[m] + " " + y, "Date selected", "ok");
+    });
+    render();
+  })();
+
+  /* ─────────── chat ─────────── */
+  (function initChat() {
+    var input = document.getElementById("chatIn"), send = document.getElementById("chatSend");
+    var thread = kit.querySelector(".k-chat");
+    if (!input || !thread) return;
+    var REPLIES = [
+      "Got it — pushing a fix now.",
+      "Checking the webhook logs for that workspace.",
+      "That's the retry loop again. Backfilling.",
+      "Confirmed on our side. Thanks for flagging."
+    ], r = 0;
+
+    function push(text, mine) {
+      var b = document.createElement("span");
+      b.className = "k-bub" + (mine ? " me" : "");
+      b.textContent = text;
+      thread.appendChild(b);
+      thread.scrollTop = thread.scrollHeight;
+      return b;
+    }
+    function submit() {
+      var v = input.value.trim();
+      if (!v) { toast("Nothing to send", "Type a message first", "warn"); return; }
+      push(v, true); input.value = "";
+      var typing = push("●●●", false);
+      typing.classList.add("typing");
+      typing.innerHTML = "<em>●●●</em>";
+      setTimeout(function () {
+        typing.classList.remove("typing");
+        typing.textContent = REPLIES[r++ % REPLIES.length];
+        thread.scrollTop = thread.scrollHeight;
+        toast("New reply", "Support responded");
+      }, 1100);
+    }
+    send.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); submit(); });
+    input.addEventListener("keydown", function (e) {
+      e.stopPropagation();
+      if (e.key === "Enter") { e.preventDefault(); submit(); }
+    });
+  })();
+
+  /* ─────────── media players ─────────── */
+  (function initPlayer() {
+    var btn = document.getElementById("playBtn");
+    var bar = btn && btn.closest(".k-player").querySelector(".k-prog i");
+    if (!btn || !bar) return;
+    var pct = 38, timer = null;
+    btn.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (timer) {
+        clearInterval(timer); timer = null;
+        btn.innerHTML = "&#9654;"; toast("Paused", "Nightshift · " + pct + "%");
+      } else {
+        btn.innerHTML = "&#10074;&#10074;";
+        toast("Playing", "Nightshift — The Long Winters", "ok");
+        timer = setInterval(function () {
+          pct = (pct + 1) % 101;
+          bar.style.width = pct + "%";
+          if (pct === 100) { clearInterval(timer); timer = null; btn.innerHTML = "&#9654;"; toast("Track finished", "Nightshift", "ok"); }
+        }, 220);
+      }
+    });
+  })();
+
+  function toggleVideo(vd) {
+    var play = vd.querySelector(".play"), fill = vd.querySelector(".vbar i");
+    if (vd._t) {
+      clearInterval(vd._t); vd._t = null; play.innerHTML = "&#9654;"; toast("Video paused");
+    } else {
+      play.innerHTML = "&#10074;&#10074;"; toast("Video playing", "0:42 remaining", "ok");
+      var p = 42;
+      vd._t = setInterval(function () {
+        p = (p + 1) % 101; fill.style.width = p + "%";
+        if (p === 100) { clearInterval(vd._t); vd._t = null; play.innerHTML = "&#9654;"; toast("Video ended"); }
+      }, 200);
+    }
+  }
+
+  /* ─────────── progress + ring animate on demand ─────────── */
+  (function initProgress() {
+    var ring = kit.querySelector(".k-ring");
+    if (!ring) return;
+    ring.style.cursor = "pointer";
+    var pct = 68;
+    ring.addEventListener("click", function () {
+      pct = (pct + 9) % 101;
+      ring.style.background = "conic-gradient(var(--accent) 0 " + pct + "%, var(--surface-3) " + pct + "% 100%)";
+      ring.querySelector("span").textContent = pct + "%";
+      var st = ring.closest(".k-row").querySelector("small");
+      if (st) st.textContent = (pct * 0.5).toFixed(1) + " GB of 50 GB";
+      toast("Storage", pct + "% used", pct > 90 ? "warn" : null);
+    });
+  })();
+
+  /* ─────────── hover tooltips on bars ─────────── */
+  (function initTips() {
+    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug"];
+    kit.addEventListener("mouseover", function (e) {
+      var bar = e.target.closest(".k-bars i");
+      if (!bar) return;
+      var i = Array.prototype.indexOf.call(bar.parentNode.children, bar);
+      var r = bar.getBoundingClientRect();
+      tiplayer.textContent = months[i] + " · $" + (parseInt(bar.style.height) * 480).toLocaleString();
+      tiplayer.style.left = (r.left + r.width / 2) + "px";
+      tiplayer.style.top = (r.top - 8) + "px";
+      tiplayer.classList.add("on");
+    });
+    kit.addEventListener("mouseout", function (e) {
+      if (e.target.closest(".k-bars i")) tiplayer.classList.remove("on");
+    });
+  })();
+
+  /* ─────────── alerts get a dismiss control ─────────── */
+  Array.prototype.forEach.call(kit.querySelectorAll(".k-alert"), function (a) {
+    var x = document.createElement("span");
+    x.className = "x"; x.innerHTML = "&times;"; x.setAttribute("role", "button"); x.setAttribute("aria-label", "Dismiss");
+    a.appendChild(x);
+  });
+
+  /* ─────────── empty state creates something ─────────── */
+  (function initEmpty() {
+    var box = kit.querySelector(".k-empty-c");
+    if (!box) return;
+    var btn = box.querySelector(".k-btn"), made = 0;
+    btn.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      made++;
+      box.querySelector("strong").textContent = made + " report" + (made > 1 ? "s" : "") + " created";
+      box.querySelector("small").textContent = "Latest: Q3 revenue · just now";
+      box.querySelector("i").innerHTML = "&#10003;";
+      toast("Report created", "Q3 revenue", "ok");
+    });
+  })();
+
+  /* ─────────── copy-tokens button in the shell ─────────── */
+  (function initTokenCopy() {
+    var sum = document.querySelector(".wb-tokens summary");
+    if (!sum) return;
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "wb-btn";
+    b.textContent = "Copy CSS";
+    b.style.marginLeft = "auto";
+    b.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var css = ".my-theme {\n  " + document.getElementById("tokens").textContent.trim().replace(/\n/g, "\n  ") + "\n}";
+      copy(css, b);
+    });
+    sum.appendChild(b);
+  })();
+
+  /* ─────────── opening nudge ─────────── */
+  setTimeout(function () {
+    toast("Everything here is live", "Click, drag, type — all 60 components respond");
+  }, 700);
+})();
+</script>

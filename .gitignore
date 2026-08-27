@@ -1,0 +1,8 @@
+# local editor/runtime config (machine-specific absolute paths)
+.claude/
+
+# work-in-progress from a different session, not part of this project
+.t24preview/
+
+.DS_Store
+*.log

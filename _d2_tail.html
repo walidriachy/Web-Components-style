@@ -1,0 +1,64 @@
+        <div class="k-toasts" id="toasts" aria-live="polite"></div>
+        <div class="k-scrim" id="scrim" hidden>
+          <div class="k-modal" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+            <div class="mh"><h4 id="dlgTitle">Delete workspace?</h4><span class="k-copy" data-act="close-dialog" style="color:var(--ink-3)">&times;</span></div>
+            <div class="mb">This removes 1,284 seats and every report inside it. Type <strong>DELETE</strong> to confirm.</div>
+            <div class="mb" style="padding-top:0"><input class="k-in" id="dlgConfirm" placeholder="DELETE" autocomplete="off"></div>
+            <div class="mf"><button class="k-btn sec sm" data-act="close-dialog">Cancel</button><button class="k-btn danger sm" id="dlgGo" disabled>Delete forever</button></div>
+          </div>
+        </div>
+        <div class="k-tip k-tiplayer" id="tiplayer"></div>
+
+      </div>
+    </div>
+
+    <div class="db-panels">
+      <div class="db-panel">
+        <h3>Contrast audit
+          <span style="margin-left:auto;font-size:9px;letter-spacing:.06em;color:var(--db-ink-3);text-transform:none">WCAG 2.1 &middot; AAA 7:1 &middot; AA 4.5:1</span>
+        </h3>
+        <div class="body" id="a11yBody"></div>
+      </div>
+
+      <div class="db-panel">
+        <h3>Applied tokens
+          <span style="margin-left:auto;display:flex;gap:5px">
+            <button class="db-btn" id="ex-css"  type="button">CSS</button>
+            <button class="db-btn" id="ex-scss" type="button">SCSS</button>
+            <button class="db-btn" id="ex-tw"   type="button">Tailwind</button>
+            <button class="db-btn" id="ex-json" type="button">JSON</button>
+          </span>
+        </h3>
+        <div class="body"><pre id="tokBody">&mdash;</pre></div>
+      </div>
+    </div>
+
+    <div id="compareWrap" hidden>
+      <div class="db-compare">
+        <div class="cmp">
+          <div class="cmp-h"><b id="cmpAname">&mdash;</b><span style="color:var(--db-ink-3);font-size:10px">CURRENT</span></div>
+          <div class="cmp-body" id="cmpA"></div>
+        </div>
+        <div class="cmp">
+          <div class="cmp-h">
+            <b id="cmpBname">&mdash;</b>
+            <select id="cmpBsel" class="db-btn" aria-label="Compare against"></select>
+          </div>
+          <div class="cmp-body" id="cmpB"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="db-row" style="margin-top:14px">
+      <button class="db-btn" id="ex-favs" type="button">&#9733; Export my shortlist</button>
+      <button class="db-btn" id="ex-all"  type="button">Export whole database as JSON</button>
+      <span style="font-size:10.5px;color:var(--db-ink-3)">Saved designs persist in this browser.</span>
+    </div>
+  </section>
+
+  <footer class="db-foot">
+    Design database — every entry is data in <code>designs.js</code>, expanded to CSS custom properties at runtime. To add designs, append rows to that file; nothing else needs to change.<br>
+    Brand and theme palettes reproduce published values for study and comparison, and are not affiliated with or endorsed by their owners.
+  </footer>
+
+</div>

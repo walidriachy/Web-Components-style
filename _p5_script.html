@@ -1,0 +1,276 @@
+<script>
+(function () {
+  "use strict";
+
+  var STYLES = [
+    /* ── SYSTEM ── */
+    ["swiss","Swiss International","System","Grid, Helvetica, one red accent, zero decoration. The 1950s Basel school that quietly became the default look of serious software.","grid helvetica minimal red modernist basel typographic"],
+    ["bauhaus","Bauhaus","System","Primary red, blue and yellow with hard geometry. The 1919 school whose circle-square-triangle logic underlies nearly all modern design education.","geometric primary german school circle square"],
+    ["material","Material Design 3","System","Google's system: tonal purple surfaces, pill-shaped buttons, generous 16px radii and elevation instead of borders.","google android tonal elevation purple pill"],
+    ["fluent","Fluent / Acrylic","System","Microsoft's language: translucent acrylic layers, restrained blue, small radii and a lot of depth cues.","microsoft windows acrylic mica translucent blue"],
+    ["cupertino","Cupertino","System","Apple's HIG look: #007AFF blue, 12px continuous corners, grouped cards on grey, and vibrancy everywhere.","apple ios macos hig blue rounded grouped"],
+    ["flat","Flat Design","System","The 2013 backlash against skeuomorphism. Bright saturated fills, no gradients, no shadows, no texture.","2013 turquoise saturated no shadow simple"],
+    ["zen","Zen Minimal","System","Whitespace as the primary material. Hairline rules, 300-weight type, generous line height, almost no colour.","minimal whitespace calm thin quiet japanese"],
+    ["monochrome","Monochrome","System","No hue at all. Every state — success, warning, error — expressed through weight, fill and position instead of colour.","black white greyscale no colour print"],
+
+    /* ── RAW ── */
+    ["brutalism","Web Brutalism","Raw","Unstyled HTML as an aesthetic. Times, default blue links, 2px black boxes, no radius, no shadow, no apology.","raw html times default links honest ugly"],
+    ["neubrutal","Neo-Brutalism","Raw","The friendly descendant: thick black outlines, hard offset shadows, saturated flats. Gumroad made it mainstream around 2022.","gumroad offset shadow bold outline yellow 2022"],
+    ["antidesign","Anti-Design","Raw","Deliberately wrong. Clashing hues, mismatched faces, rotated cards. A rejection of usability convention as a statement.","ugly clash chaos deliberate wrong punk"],
+    ["swisspunk","Swiss Punk","Raw","Weingart's deconstruction of the grid — skewed type, extreme tracking, the system broken on purpose.","weingart deconstructed skew tracking postmodern"],
+    ["wireframe","Wireframe","Raw","Lo-fi greyscale placeholder. Dashed boxes, hatch fills, no colour decisions made yet — structure argued before surface.","lofi grey dashed placeholder prototype sketch"],
+    ["databrutal","Data Brutalism","Raw","Dense monospace tables, hairline rules, 12px type, zero radius. Bloomberg terminal logic applied to the web.","dense terminal bloomberg table mono financial"],
+    ["maximal","Maximalism","Raw","Everything at once — layered gradients, glow, saturated neon, display type. More is the point.","more neon gradient loud layered busy"],
+    ["monospace","Monospace","Raw","One typeface for everything. Warm paper, amber accent, the calm of a fixed grid applied to an entire interface.","fixed width code warm developer terminal-ish"],
+
+    /* ── DEPTH ── */
+    ["skeuo","Skeuomorphism","Depth","Pre-2013 Apple: linen texture, bevelled edges, glossy gradients, inner shadows. Buttons that look pressable.","apple 2010 linen bevel gloss texture real"],
+    ["neumorph","Neumorphism","Depth","Soft UI. One background colour, shapes extruded with paired light and dark shadows. Beautiful, and an accessibility problem.","soft ui extruded 2020 dual shadow monochrome"],
+    ["glass","Glassmorphism","Depth","Frosted translucent panels floating over a colourful blur. Apple's Big Sur and Windows 11 both live here.","frosted blur translucent bigsur vision acrylic"],
+    ["clay","Claymorphism","Depth","Puffy 3D shapes with inner highlights and big pastel radii. Interfaces that look moulded rather than drawn.","puffy 3d pastel inflated soft rounded"],
+    ["aurora","Aurora","Depth","Soft blurred mesh gradients behind near-white glass. Quiet, airy and very 2023 SaaS.","mesh gradient soft blur pastel saas airy"],
+    ["emboss","Letterpress","Depth","Warm stone surfaces with type pressed into them. A 1px white highlight above, a dark line below.","embossed debossed pressed stone subtle"],
+    ["chrome","Chrome","Depth","Brushed metal and hard speculars. Winamp, early iTunes, and every 2003 media player.","metal brushed specular winamp itunes 2003"],
+    ["frostdark","Dark Frost","Depth","Frosted glass on near-black, lit by cyan and violet glows. The dark-mode answer to glassmorphism.","dark glass blur cyan glow night"],
+
+    /* ── RETRO ── */
+    ["y2k","Y2K / Frutiger Aero","Retro","Aqua blue, glossy pill buttons, white speculars, bubble radii. 1999–2008, and back in fashion.","aqua glossy bubble frutiger 2000 shiny blue"],
+    ["vaporwave","Vaporwave","Retro","Hot pink and cyan on deep purple, perspective grids, glowing display type. Internet nostalgia as an aesthetic.","pink cyan 80s grid glow nostalgia aesthetic"],
+    ["memphis","Memphis","Retro","Sottsass's 1981 Milan group: squiggles, confetti dots, primaries against pastels, black outlines.","1980s sottsass milan squiggle confetti playful"],
+    ["pixel","8-Bit","Retro","NES-era constraints made deliberate. Press Start 2P, three-pixel borders, hard black drop shadows, no curves.","nes 8bit game retro arcade pixelated"],
+    ["crt","CRT Terminal","Retro","Phosphor green on black with scanlines and a soft bloom. The VT100 as a visual language.","green phosphor scanline vt100 hacker terminal"],
+    ["win95","Windows 95","Retro","Grey #C0C0C0 with the outset bevel: white top-left, black bottom-right. Teal desktop, navy title bars.","win95 bevel grey teal 90s retro os"],
+    ["deco","Art Deco","Retro","Gold on near-black, wide-tracked capitals, hairline rules. The Chrysler Building rendered as a UI.","1920s gold gatsby geometric luxury symmetry"],
+    ["midcentury","Mid-Century Modern","Retro","Burnt orange, teal and mustard on cream. Eames-era warmth with soft geometric shapes.","1950s eames orange teal mustard atomic warm"],
+
+    /* ── FUTURE ── */
+    ["cyberpunk","Cyberpunk","Future","Magenta and cyan on near-black, clipped corners, glow bleed. Neuromancer by way of Night City.","neon magenta cyan night city glow clipped"],
+    ["hud","Sci-Fi HUD","Future","Thin cyan hairlines, corner brackets, grid overlays and Orbitron. The look of an interface that appears in the air.","heads up display bracket cyan grid orbitron"],
+    ["synthwave","Synthwave","Future","Sunset gradient, horizon grid, glowing outline type. 1984 as imagined in 2016.","retrowave outrun 80s sunset grid glow purple"],
+    ["matrix","Matrix","Future","#00FF41 on pure black, monospace only. Nothing else — the most restricted palette on this page.","green black hacker code terminal 1999"],
+    ["glitch","Glitch","Future","RGB channel separation, offset shadows, hard edges. Signal failure treated as decoration.","rgb split datamosh broken distort corrupt"],
+    ["holo","Holographic","Future","Iridescent pastel sweeps over frosted white. Foil-stamp shimmer translated into CSS.","iridescent foil rainbow shimmer pastel prism"],
+    ["darkpro","Dark Pro","Future","The Linear and Vercel register: near-black, hairline borders, one violet accent, tight negative tracking.","linear vercel modern dev tool refined night"],
+    ["blueprint","Blueprint","Future","Cyan hairlines and a 26px grid on navy. Technical drawing conventions applied to software.","technical drawing cad grid navy cyan draft"],
+
+    /* ── PRINT ── */
+    ["editorial","Editorial","Print","Playfair at 900 weight, a drop cap, cream stock, one oxblood accent. Long-form magazine design.","magazine serif dropcap longform cream feature"],
+    ["fashion","High Fashion","Print","Hairline capitals tracked to .3em, enormous whitespace, pure black on pure white. Vogue's masthead logic.","vogue luxury thin uppercase tracking editorial"],
+    ["luxe","Luxury Gold","Print","Warm gold on near-black with Playfair and Cormorant. Watches, spirits and private banking.","gold black premium serif watch spirits elegant"],
+    ["newspaper","Broadsheet","Print","Dense serif columns, double rules, hard black on newsprint cream. The Times of London as a stylesheet.","newsprint column serif rule broadsheet press"],
+    ["typewriter","Typewriter","Print","Special Elite on toothy cream paper. Every measurement fixed-width, every edge square.","manuscript courier paper draft screenplay"],
+    ["academic","Academic","Print","Journal typography — Baskerville body, restrained navy links, generous leading, no ornament.","journal paper baskerville scholarly citation"],
+    ["riso","Risograph","Print","Two fluorescent inks misregistered over grain. Fluoro pink and reflex blue, offset by 3px.","print zine fluoro misregister grain duotone"],
+    ["zine","Xerox Zine","Print","Photocopied grain, Archivo Black headlines, 3px rules and cards taped down slightly crooked.","punk photocopy diy 90s cut paste grunge"],
+
+    /* ── ORGANIC ── */
+    ["sketch","Hand-Drawn","Organic","Caveat throughout, wobbly asymmetric borders, offset pencil shadows. A whiteboard that shipped.","wobbly marker whiteboard doodle excalidraw pencil"],
+    ["kawaii","Kawaii","Organic","Blush pink and mint, 24px radii, solid drop-shadow rims. Cute as a deliberate design decision.","cute pastel pink japanese soft rounded sweet"],
+    ["nature","Earthy","Organic","Forest green and clay brown on oat, Fraunces headings, organic blob avatars. Wellness and slow food.","organic green clay wellness earth natural oat"],
+    ["comic","Pop Art","Organic","Ben-Day halftone dots, 3.5px black outlines, primary red and blue. Lichtenstein as a component library.","halftone lichtenstein comic bold outline dots"],
+    ["candy","Candy","Organic","Glossy gradients, hard bottom edges that depress when pressed, saturated pinks. Interfaces you want to bite.","glossy gummy sweet bouncy pink 3d button"],
+    ["startup","Playful Startup","Organic","Indigo-to-violet gradient, 14px radii, Outfit display and a gradient-clipped headline. The 2021 seed-round look.","saas gradient indigo violet friendly modern"],
+    ["scrapbook","Scrapbook","Organic","Taped paper cards rotated a degree off true, Caveat headings, washi colours on kraft.","collage tape paper craft washi kraft crooked"],
+    ["blob","Organic Blob","Organic","No straight edges anywhere. Asymmetric border-radius on every surface, coral and sea green.","blob asymmetric curve soft coral organic shape"],
+
+    /* ── FRAMEWORK ── */
+    ["shadcn","shadcn/ui","Framework","Neutral zinc, 6px radii, near-black primary and hairline borders. The most-copied look in web development right now.","zinc neutral radix tailwind 2023 subtle modern default"],
+    ["tailwind","Tailwind UI","Framework","Slate neutrals with indigo-600. What you get when you build straight from Tailwind's default scale.","slate indigo utility css framework default"],
+    ["radix","Radix Themes","Framework","Radix's twelve-step colour scales — carefully even contrast at every step, accessible by construction.","accessible scale twelve step primitives"],
+    ["carbon","IBM Carbon","Framework","Zero radius, IBM Plex, #0F62FE blue and a strict 2x grid. Enterprise software that means it.","ibm plex enterprise grid blue sharp"],
+    ["polaris","Shopify Polaris","Framework","Merchant-facing green and grey. Dense, functional, built for people who run a shop all day.","shopify merchant commerce green admin"],
+    ["primer","GitHub Primer","Framework","#0969DA blue on #F6F8FA, 6px radii, tight 14px body. The look of every pull request you have ever read.","github code review blue developer"],
+    ["spectrum","Adobe Spectrum","Framework","Cool greys, #1473E6 blue and fully rounded buttons. Built for long sessions in creative tools.","adobe creative cloud grey pill"],
+    ["antd","Ant Design","Framework","#1677FF and high information density. The dominant system across Chinese enterprise software.","alibaba enterprise dense china blue"],
+    ["atlassian","Atlassian","Framework","#0052CC on #172B4D ink with 3px radii. Jira, Confluence and Bitbucket all wear it.","jira confluence bitbucket blue enterprise"],
+    ["base","Base Web","Framework","Uber's system: pure black, zero radius, 2px borders, #276EF1 blue. Unmistakably confident.","uber black sharp bold blue"],
+    ["chakra","Chakra UI","Framework","Teal accent over grey scales, friendly 6px radii. The approachable React default.","react teal friendly grey accessible"],
+    ["mantine","Mantine","Framework","#228BE6 blue with 4px radii and light grey surfaces. Clean, unopinionated, very readable.","react blue clean library"],
+    ["bootstrap","Bootstrap 5","Framework","#0D6EFD, 6px radii, familiar spacing. The most widely deployed look on the web, by a distance.","bs5 blue familiar classic grid"],
+    ["liquidglass","Liquid Glass","Framework","Apple's 2025 language: specular translucent layers with real depth and refraction. iOS 26 and macOS Tahoe.","apple 2025 ios26 glass specular translucent refraction"],
+    ["materialyou","Material You","Framework","Material 3's dynamic colour — tonal palettes derived from a source hue, giant 20px radii, pill buttons.","google android12 dynamic tonal pill"],
+
+    /* ── PRODUCT ── */
+    ["linear","Linear","Product","#08090A ground, #5E6AD2 violet, Inter at -0.035em tracking. The dark app look everyone has been copying since 2021.","dark violet issue tracker tight refined 2021"],
+    ["vercel","Vercel","Product","Pure black on pure white, -0.045em tracking, hairline greys. Confidence through subtraction.","geist black white minimal nextjs sharp"],
+    ["stripe","Stripe","Product","#635BFF on #0A2540 navy ink with soft layered shadows and a faint tri-colour wash.","payments purple navy fintech gradient polished"],
+    ["notion","Notion","Product","Warm #37352F ink on white, 4px radii, no shadows. Deliberately closer to paper than to software.","docs warm paper calm workspace"],
+    ["figma","Figma","Product","12.5px UI text, tight padding and four bright accents. Chrome that gets out of the canvas's way.","design tool canvas dense blue toolbar"],
+    ["raycast","Raycast","Product","#1A1A1A with coral #FF6363 and 10px radii. Keyboard-first launcher polish.","launcher dark coral keyboard mac"],
+    ["supabase","Supabase","Product","#1C1C1C with #3ECF8E green and monospace data. Developer infrastructure that looks the part.","postgres dark green developer database"],
+    ["arc","Arc","Product","Pastel gradient washes behind translucent cards. A browser that decided to be cheerful.","browser gradient pastel playful colourful"],
+    ["framer","Framer","Product","#0099FF on white with -0.05em display tracking and 10px radii. Marketing-site energy.","website builder blue bold tight"],
+    ["discord","Discord","Product","#5865F2 blurple on #313338. Dark by default, built for people who never close the tab.","blurple chat gaming dark community"],
+    ["slack","Slack","Product","#4A154B aubergine with the four-colour accent set and heavy 900-weight headings.","aubergine work chat lato bold"],
+    ["spotify","Spotify","Product","#121212 with #1DB954 green and fully-rounded uppercase buttons. Media-app black.","music dark green pill media"],
+    ["openai","OpenAI","Product","Near-white, 12px radii, pill buttons, generous 1.7 line height and a single #10A37F green.","chatgpt minimal white green conversational"],
+    ["claude","Claude","Product","#F0EEE6 cream with #C15F3C terracotta and a Fraunces serif display. Warm where the rest of AI is cold.","anthropic cream terracotta warm serif ai"],
+    ["superhuman","Superhuman","Product","Deep violet-black with #7C4DFF and a soft glow. Email as a premium object.","email dark violet glow premium fast"],
+
+    /* ── EDITOR ── */
+    ["nord","Nord","Editor","Arctic blue-greys with frost cyan. The most restrained palette in the developer canon.","arctic blue grey frost calm cool"],
+    ["dracula","Dracula","Editor","#282A36 with purple, pink and green. The theme that launched a thousand ports.","purple pink dark classic vampire"],
+    ["tokyonight","Tokyo Night","Editor","#1A1B26 with muted blue and violet. Night-city blues without the neon.","dark blue violet muted japanese city"],
+    ["catppuccin","Catppuccin Mocha","Editor","Soft pastel accents on warm dark plum. The most-installed theme of the last few years.","pastel mocha soft dark cosy"],
+    ["latte","Catppuccin Latte","Editor","The light member of the same family — #EFF1F5 with mauve and blue.","light pastel mauve soft day"],
+    ["gruvbox","Gruvbox","Editor","Retro warmth — mustard, olive and burnt orange on #282828.","retro warm mustard olive brown"],
+    ["solarizedlight","Solarized Light","Editor","Ethan Schoonover's precision-engineered palette. #FDF6E3 with mathematically even contrast.","precision cream science classic ethan"],
+    ["solarizeddark","Solarized Dark","Editor","The #002B36 counterpart, sharing the same accent hues at inverted lightness.","teal dark precision classic"],
+    ["onedark","One Dark","Editor","Atom's default, and the shape most modern dark themes still follow.","atom classic dark blue purple"],
+    ["rosepine","Rosé Pine","Editor","Muted rose, pine and iris on ink. Soho vibes, in their own words.","rose pine iris muted elegant soho"],
+    ["everforest","Everforest","Editor","Green-based and deliberately low-contrast, designed to be easy on the eyes for hours.","green forest soft low contrast comfortable"],
+    ["monokai","Monokai","Editor","#272822 with hot pink and lime. Sublime Text's default and a genuine classic.","sublime pink lime classic 2006"],
+    ["nightowl","Night Owl","Editor","Sarah Drasner's theme, tuned specifically for low-light and colour-blind readability.","dark blue accessible night sarah"],
+    ["ayu","Ayu Dark","Editor","#0F1419 with warm orange. Unusually warm for a dark theme.","warm orange dark minimal"],
+    ["githubdark","GitHub Dark","Editor","#0D1117 with #58A6FF. What most developers now read code in by default.","github dark blue code default"],
+    ["cobalt2","Cobalt2","Editor","Wes Bos's deep blue with #FFC600 yellow. Loud, and proud of it.","wesbos blue yellow bold vscode"],
+
+    /* ── TREND ── */
+    ["bento","Bento Grid","Trend","Big 24px-radius tiles in a tight mosaic. Apple's keynote slides taught the whole industry this in 2023.","tiles mosaic apple keynote 2023 grid cards"],
+    ["spatial","Spatial","Trend","visionOS depth — dark ground, heavy glass, inner light on every edge.","visionos vr depth glass apple 3d"],
+    ["acid","Acid Graphics","Trend","#CCFF00 on black with hot magenta. Rave flyer energy applied to product design.","rave lime magenta harsh club poster"],
+    ["liquidchrome","Liquid Chrome","Trend","Poured metal gradients and heavy speculars. The dominant 2024–25 graphic-design trend.","metal 2024 y2k revival gradient shiny"],
+    ["blurcore","Blur Core","Trend","44px of blur over saturated colour fields. The background does all the work.","gradient heavy blur saturated soft dreamy"],
+    ["grain","Grain","Trend","Restrained type over a fine noise layer. Digital design pretending it was printed.","noise texture film analogue subtle print"],
+    ["bigtype","Big Type","Trend","Display type at 100px+ with -0.06em tracking. The headline is the layout.","typographic huge editorial display bold"],
+    ["softpop","Soft Pop","Trend","Pastel grounds with saturated accents and solid drop shadows. Friendly without being childish.","pastel bright rounded friendly shadow"],
+    ["ainative","AI Native","Trend","Lavender-to-teal gradient accents, roomy line height, conversational spacing. The 2024–26 assistant look.","assistant chatbot gradient lavender conversational llm"],
+    ["quietluxury","Quiet Luxury","Trend","Taupe and stone with tracked-out Cormorant capitals. Expensive by omission.","stealth wealth taupe stone refined understated"],
+    ["japandi","Japandi","Trend","Japanese restraint meeting Scandinavian warmth — oat, wood and deep green.","wabi sabi scandi wood oat calm natural"],
+    ["nordic","Nordic Minimal","Trend","Cool grey-blue, 300-weight type, almost no ornament. Copenhagen agency energy.","scandinavian cool grey minimal clean copenhagen"],
+    ["rams","Braun / Rams","Trend","Warm grey with one signal orange. Dieter Rams's ten principles as a stylesheet.","dieter braun functional orange grey industrial"],
+    ["duotone","Duotone","Trend","Exactly two colours — deep indigo and gold. Every state expressed without a third hue.","two colour constraint gold indigo limited"],
+    ["highcontrast","High Contrast","Trend","Pure black, pure white, yellow focus, 3px borders. Accessibility-first, not an afterthought.","a11y wcag accessible vision yellow bold"],
+    ["borderless","Borderless","Trend","No borders and no shadows anywhere. Hierarchy comes entirely from spacing and weight.","no border spacing whitespace clean airy"]
+  ];
+
+  var FAMS = ["All", "Framework", "Product", "Editor", "Trend", "System", "Raw", "Depth", "Retro", "Future", "Print", "Organic"];
+
+  var TOKEN_KEYS = [
+    "--bg","--surface","--surface-2","--ink","--ink-2","--ink-3",
+    "--accent","--on-accent","--accent-2","--ok","--warn","--err",
+    "--bw","--bc","--bstyle","--r","--r-sm","--r-lg","--r-pill",
+    "--sh","--sh-lg","--blur",
+    "--f-d","--f-b","--f-m","--h-w","--h-ls","--h-tt","--b-size","--b-lh",
+    "--btn-r","--btn-w","--btn-tt","--btn-ls","--btn-sh","--btn-pad",
+    "--in-bg","--in-r"
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var sheet = $("sheet"), kit = $("kit"), q = $("q"), countEl = $("count"),
+      emptyEl = $("empty"), famsEl = $("fams"),
+      sbName = $("sbName"), sbNote = $("sbNote"), sbFam = $("sbFam"), tokensEl = $("tokens");
+
+  var current = 0, activeFam = "All";
+
+  /* ---- build the contact sheet ---- */
+  var frag = document.createDocumentFragment();
+  STYLES.forEach(function (s, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "tile";
+    b.dataset.style = s[0];
+    b.dataset.family = s[2];
+    b.dataset.idx = i;
+    b._hay = (s[0] + " " + s[1] + " " + s[2] + " " + s[3] + " " + s[4]).toLowerCase();
+    b.setAttribute("aria-label", s[1] + " — " + s[2]);
+    b.innerHTML =
+      '<span class="tile-face" data-style="' + s[0] + '">' +
+        '<span class="tile-no">' + String(i + 1).padStart(2, "0") + '</span>' +
+        '<span class="tile-aa">Aa</span>' +
+        '<span class="tile-card"><span class="tile-chip">Button</span>' +
+          '<span class="tile-sw"><i style="background:var(--accent)"></i><i style="background:var(--ok)"></i><i style="background:var(--ink-3)"></i></span>' +
+        '</span>' +
+      '</span>' +
+      '<span class="tile-meta"><span class="tile-name"></span><span class="tile-fam"></span></span>';
+    b.querySelector(".tile-name").textContent = s[1];
+    b.querySelector(".tile-fam").textContent = s[2];
+    b.addEventListener("click", function () { select(i, true); });
+    frag.appendChild(b);
+  });
+  sheet.appendChild(frag);
+  var tiles = Array.prototype.slice.call(sheet.children);
+
+  /* ---- family filter chips ---- */
+  FAMS.forEach(function (f) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "wb-fam";
+    b.textContent = f;
+    b.setAttribute("aria-pressed", f === "All" ? "true" : "false");
+    b.addEventListener("click", function () {
+      activeFam = f;
+      Array.prototype.forEach.call(famsEl.children, function (c) {
+        c.setAttribute("aria-pressed", c === b ? "true" : "false");
+      });
+      apply();
+    });
+    famsEl.appendChild(b);
+  });
+
+  /* ---- filtering ---- */
+  function apply() {
+    var term = q.value.trim().toLowerCase();
+    var shown = 0;
+    tiles.forEach(function (t) {
+      var hit = (!term || t._hay.indexOf(term) !== -1) &&
+                (activeFam === "All" || t.dataset.family === activeFam);
+      t.style.display = hit ? "" : "none";
+      if (hit) shown++;
+    });
+    countEl.textContent = (term || activeFam !== "All")
+      ? shown + " of " + STYLES.length
+      : STYLES.length + " styles";
+    emptyEl.style.display = shown === 0 ? "block" : "none";
+  }
+
+  /* ---- token readout ---- */
+  function readTokens() {
+    var cs = getComputedStyle(kit);
+    var out = "";
+    TOKEN_KEYS.forEach(function (k) {
+      var v = cs.getPropertyValue(k).trim();
+      if (!v) return;
+      if (v.length > 92) v = v.slice(0, 89) + "…";
+      out += '<span class="tk">' + k + '</span>: ' + v.replace(/</g, "&lt;") + ";\n";
+    });
+    tokensEl.innerHTML = out || "—";
+  }
+
+  /* ---- selection ---- */
+  function select(i, scroll) {
+    current = (i + STYLES.length) % STYLES.length;
+    var s = STYLES[current];
+    kit.dataset.style = s[0];
+    sbName.textContent = s[1];
+    sbNote.textContent = s[3];
+    sbFam.textContent = s[2].toUpperCase();
+    tiles.forEach(function (t, n) { t.setAttribute("aria-current", n === current ? "true" : "false"); });
+    readTokens();
+    if (scroll) {
+      var bar = document.querySelector(".wb-stagebar");
+      if (bar) window.scrollTo({ top: bar.getBoundingClientRect().top + window.scrollY - 56, behavior: "smooth" });
+    }
+  }
+
+  /* ---- wiring ---- */
+  q.addEventListener("input", apply);
+  $("prev").addEventListener("click", function () { select(current - 1, false); });
+  $("next").addEventListener("click", function () { select(current + 1, false); });
+  $("rand").addEventListener("click", function () {
+    var visible = tiles.filter(function (t) { return t.style.display !== "none"; });
+    if (!visible.length) return;
+    var pick = visible[Math.floor(Math.random() * visible.length)];
+    select(Number(pick.dataset.idx), true);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target === q || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "ArrowRight") { select(current + 1, false); e.preventDefault(); }
+    if (e.key === "ArrowLeft")  { select(current - 1, false); e.preventDefault(); }
+  });
+
+  apply();
+  select(0, false);
+})();
+</script>

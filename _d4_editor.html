@@ -1,0 +1,297 @@
+<style>
+/* ============================================================
+   STYLE EDITOR — fork any design, edit its tokens live, save it
+   into the database as your own. Drives the same applyTo() the
+   viewer uses, so what you see is exactly what gets stored.
+   ============================================================ */
+#edToggle{position:fixed; right:18px; bottom:18px; z-index:200;}
+.ed{
+  position:fixed; top:0; right:0; bottom:0; width:min(392px,100vw); z-index:210;
+  background:var(--db-panel); border-left:1px solid var(--db-rule);
+  box-shadow:-18px 0 44px -24px rgba(0,0,0,.5);
+  display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform .22s cubic-bezier(.4,0,.2,1);
+}
+.ed.open{transform:none;}
+.ed-h{
+  padding:13px 16px; border-bottom:1px solid var(--db-rule);
+  display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+}
+.ed-h b{font-family:var(--db-d); font-size:15px; font-weight:700; letter-spacing:-.02em; flex:1; min-width:0;}
+.ed-body{flex:1; overflow-y:auto; padding:4px 16px 20px;}
+.ed-f{padding:12px 16px; border-top:1px solid var(--db-rule); display:flex; gap:6px; flex-wrap:wrap;}
+.ed-sec{
+  font-family:var(--db-m); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--db-ink-3); margin:18px 0 8px; padding-bottom:5px; border-bottom:1px solid var(--db-rule-2);
+}
+.ed-row{display:grid; grid-template-columns:74px 1fr; gap:8px; align-items:center; margin-bottom:6px;}
+.ed-row > label{font-size:10.5px; color:var(--db-ink-2); font-family:var(--db-m); overflow:hidden; text-overflow:ellipsis;}
+.ed-c{display:flex; gap:5px; align-items:center;}
+.ed-c input[type=color]{
+  width:30px; height:26px; padding:0; border:1px solid var(--db-rule); border-radius:3px;
+  background:none; cursor:pointer; flex:none;
+}
+.ed-c input[type=text],.ed-row select,.ed-row input[type=text]{
+  flex:1; min-width:0; font-family:var(--db-m); font-size:11px; padding:5px 7px;
+  background:var(--db-bg); color:var(--db-ink); border:1px solid var(--db-rule); border-radius:3px;
+}
+.ed-row input[type=range]{width:100%;}
+.ed-num{display:flex; gap:6px; align-items:center;}
+.ed-num output{font-family:var(--db-m); font-size:10px; color:var(--db-ink-3); min-width:38px; text-align:right;}
+.ed-note{font-size:10px; color:var(--db-ink-3); line-height:1.5; margin:8px 0 0;}
+.ed-warn{
+  font-size:10.5px; color:var(--db-err); background:rgba(179,38,30,.1);
+  border:1px solid rgba(179,38,30,.28); border-radius:3px; padding:7px 9px; margin-top:10px; display:none;
+}
+.ed-warn.on{display:block;}
+.ed-scores{display:flex; gap:5px; flex-wrap:wrap; margin-top:9px;}
+.ed-score{font-family:var(--db-m); font-size:9px; padding:3px 6px; border-radius:2px;}
+@media (prefers-reduced-motion:reduce){ .ed{transition:none;} }
+</style>
+
+<button class="db-btn" id="edToggle" type="button">&#9998; Edit this design</button>
+
+<aside class="ed" id="ed" aria-label="Style editor" aria-hidden="true">
+  <div class="ed-h">
+    <b id="edName">—</b>
+    <button class="db-btn" id="edClose" type="button">Close</button>
+  </div>
+  <div class="ed-body" id="edBody"></div>
+  <div class="ed-warn" id="edWarn"></div>
+  <div class="ed-f">
+    <button class="db-btn" id="edSave" type="button">Save as mine</button>
+    <button class="db-btn" id="edRevert" type="button">Revert</button>
+    <button class="db-btn" id="edDelete" type="button">Delete</button>
+    <button class="db-btn" id="edExport" type="button">Export CSS</button>
+  </div>
+</aside>
+
+<script>
+(function () {
+  "use strict";
+  var API = window.__DB;
+  if (!API) return;
+
+  var FONTS = ["Inter","DM Sans","Outfit","Poppins","Rubik","Space Grotesk","Work Sans","Manrope",
+    "Figtree","Sora","Public Sans","Schibsted Grotesk","Familjen Grotesk","Instrument Sans","Karla",
+    "Archivo Black","Anton","Bebas Neue","Oswald","Syne","Bricolage Grotesque","Unbounded",
+    "Playfair Display","Libre Baskerville","Cormorant Garamond","Fraunces","EB Garamond","Bodoni Moda",
+    "Instrument Serif","Lora","Crimson Pro","Abril Fatface","Cinzel","Marcellus",
+    "IBM Plex Mono","Space Mono","VT323","Silkscreen","Press Start 2P","Major Mono Display",
+    "Bungee","Monoton","Orbitron","Chakra Petch","Audiowide","Righteous","Zen Dots","Michroma",
+    "Caveat","Special Elite"];
+
+  var COLOURS = [
+    ["bg","Page"],["surface","Card"],["surface2","Panel"],["surface3","Fill"],
+    ["ink","Text"],["ink2","Text 2"],["ink3","Muted"],
+    ["accent","Accent"],["onAccent","On accent"],["accent2","Accent 2"],
+    ["ok","Success"],["warn","Warning"],["err","Error"],["bc","Border"]
+  ];
+  var STRUCT = [
+    ["density","Density",["compact","cozy","airy"]],
+    ["scale","Type scale",["tight","normal","dramatic"]],
+    ["surface","Surface",["flat","outlined","raised","inset","glass"]],
+    ["input","Inputs",["box","underline","filled","pill","sharp"]],
+    ["btn","Buttons",["solid","outline","ghost","gradient","hard","soft"]],
+    ["divider","Dividers",["hairline","heavy","dashed","none","double"]],
+    ["align","Alignment",["left","center"]]
+  ];
+
+  var ed = document.getElementById("ed"), body = document.getElementById("edBody");
+  var work = null, original = null;
+
+  function hexOf(v) {
+    v = String(v || "").trim();
+    if (v[0] === "#") {
+      if (v.length === 4) return "#" + v[1]+v[1]+v[2]+v[2]+v[3]+v[3];
+      if (v.length >= 7) return v.slice(0, 7);
+    }
+    var m = v.match(/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+    if (m) return "#" + [m[1],m[2],m[3]].map(function (n) {
+      return ("0" + Math.round(+n).toString(16)).slice(-2);
+    }).join("");
+    return "#888888";
+  }
+
+  function row(label, control) {
+    var d = document.createElement("div");
+    d.className = "ed-row";
+    var l = document.createElement("label");
+    l.textContent = label;
+    d.appendChild(l); d.appendChild(control);
+    return d;
+  }
+  function sec(t) { var h = document.createElement("div"); h.className = "ed-sec"; h.textContent = t; return h; }
+
+  function colourControl(key) {
+    var wrap = document.createElement("div"); wrap.className = "ed-c";
+    var c = document.createElement("input"); c.type = "color"; c.value = hexOf(work.tokens[key]);
+    var t = document.createElement("input"); t.type = "text"; t.value = work.tokens[key];
+    c.addEventListener("input", function () { t.value = c.value; work.tokens[key] = c.value; paint(); });
+    t.addEventListener("input", function () {
+      work.tokens[key] = t.value;
+      var h = hexOf(t.value); if (/^#[0-9a-f]{6}$/i.test(h)) c.value = h;
+      paint();
+    });
+    wrap.appendChild(c); wrap.appendChild(t);
+    return wrap;
+  }
+  function selectControl(key, opts, target) {
+    var s = document.createElement("select");
+    opts.forEach(function (o) {
+      var op = document.createElement("option"); op.value = o; op.textContent = o;
+      s.appendChild(op);
+    });
+    s.value = (target === "struct" ? (work.struct || {})[key] : work.tokens[key]) || opts[0];
+    s.addEventListener("change", function () {
+      if (target === "struct") { work.struct = work.struct || {}; work.struct[key] = s.value; }
+      else work.tokens[key] = s.value;
+      paint();
+    });
+    return s;
+  }
+  function rangeControl(key, min, max, unit) {
+    var wrap = document.createElement("div"); wrap.className = "ed-num";
+    var r = document.createElement("input");
+    r.type = "range"; r.min = min; r.max = max;
+    r.value = parseFloat(work.tokens[key]) || 0;
+    var o = document.createElement("output"); o.textContent = r.value + unit;
+    r.addEventListener("input", function () {
+      work.tokens[key] = r.value + unit; o.textContent = r.value + unit; paint();
+    });
+    wrap.appendChild(r); wrap.appendChild(o);
+    return wrap;
+  }
+  function textControl(key) {
+    var t = document.createElement("input"); t.type = "text"; t.value = work.tokens[key];
+    t.addEventListener("input", function () { work.tokens[key] = t.value; paint(); });
+    return t;
+  }
+
+  function build() {
+    body.innerHTML = "";
+    document.getElementById("edName").textContent = work.name;
+
+    body.appendChild(sec("Identity"));
+    var n = document.createElement("input"); n.type = "text"; n.value = work.name;
+    n.addEventListener("input", function () {
+      work.name = n.value; document.getElementById("edName").textContent = n.value;
+    });
+    body.appendChild(row("Name", n));
+
+    body.appendChild(sec("Colour"));
+    COLOURS.forEach(function (c) { body.appendChild(row(c[1], colourControl(c[0]))); });
+
+    body.appendChild(sec("Typography"));
+    body.appendChild(row("Display", selectControl("fontD", FONTS)));
+    body.appendChild(row("Body", selectControl("fontB", FONTS)));
+    body.appendChild(row("Mono", selectControl("fontM", FONTS)));
+    body.appendChild(row("Weight", selectControl("hWeight", ["300","400","500","600","700","800","900"])));
+    body.appendChild(row("Tracking", textControl("hTracking")));
+    body.appendChild(row("Case", selectControl("hCase", ["none","uppercase"])));
+
+    body.appendChild(sec("Shape"));
+    body.appendChild(row("Radius", rangeControl("r", 0, 40, "px")));
+    body.appendChild(row("Button r", rangeControl("btnR", 0, 40, "px")));
+    body.appendChild(row("Border", rangeControl("bw", 0, 6, "px")));
+    body.appendChild(row("Blur", rangeControl("blur", 0, 40, "px")));
+    body.appendChild(row("Btn case", selectControl("btnCase", ["none","uppercase"])));
+
+    body.appendChild(sec("Depth"));
+    body.appendChild(row("Shadow", textControl("sh")));
+    body.appendChild(row("Shadow lg", textControl("shLg")));
+    body.appendChild(row("Gradient", textControl("grad")));
+
+    body.appendChild(sec("Structure"));
+    STRUCT.forEach(function (s) { body.appendChild(row(s[1], selectControl(s[0], s[2], "struct"))); });
+
+    var note = document.createElement("p");
+    note.className = "ed-note";
+    note.textContent = "Changes apply to the stage instantly. Save as mine stores it in this browser and adds it to the database under the family “Mine”.";
+    body.appendChild(note);
+
+    var scores = document.createElement("div");
+    scores.className = "ed-scores"; scores.id = "edScores";
+    body.appendChild(scores);
+  }
+
+  function paint() {
+    API.applyTo(API.kit, work);
+    var rows = API.audit(work);
+    var el = document.getElementById("edScores");
+    if (el) {
+      el.innerHTML = rows.slice(0, 6).map(function (r) {
+        var cls = r.grade === "fail" ? "fail" : r.grade;
+        var col = r.grade === "fail" ? "var(--db-err)" : r.grade === "aa" ? "var(--db-warn)" : "var(--db-ok)";
+        return '<span class="ed-score" style="color:' + col + ';border:1px solid currentColor">' +
+               r.label.split(" ")[0] + " " + r.ratio.toFixed(1) + "</span>";
+      }).join("");
+    }
+    var bad = rows.filter(function (r) { return r.grade === "fail"; });
+    var w = document.getElementById("edWarn");
+    w.classList.toggle("on", bad.length > 0);
+    w.textContent = bad.length ? bad.length + " contrast failure" + (bad.length > 1 ? "s" : "") + ": " +
+      bad.map(function (r) { return r.label.toLowerCase(); }).join(", ") : "";
+  }
+
+  function open() {
+    var d = API.current();
+    original = JSON.parse(JSON.stringify(d));
+    work = JSON.parse(JSON.stringify(d));
+    work.struct = work.struct || API.structOf(d);
+    ed.classList.add("open"); ed.setAttribute("aria-hidden", "false");
+    document.getElementById("edToggle").style.display = "none";
+    build(); paint();
+  }
+  function close() {
+    ed.classList.remove("open"); ed.setAttribute("aria-hidden", "true");
+    document.getElementById("edToggle").style.display = "";
+    if (original) API.applyTo(API.kit, API.current());
+  }
+
+  document.getElementById("edToggle").addEventListener("click", open);
+  document.getElementById("edClose").addEventListener("click", close);
+  document.getElementById("edRevert").addEventListener("click", function () {
+    work = JSON.parse(JSON.stringify(original));
+    work.struct = work.struct || API.structOf(original);
+    build(); paint();
+  });
+  document.getElementById("edSave").addEventListener("click", function () {
+    var base = work.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "mine";
+    if (work.id === original.id) work.id = "mine-" + base;
+    work.family = "Mine";
+    work.tags = (work.tags || "") + " mine custom saved";
+    if (API.saveMine(work)) {
+      var at = API.indexOf(work.id);
+      if (at > -1) API.select(at, false);
+      close();
+    } else {
+      alert("Could not save — browser storage is unavailable.");
+    }
+  });
+  document.getElementById("edDelete").addEventListener("click", function () {
+    if (work.family !== "Mine") { alert("Only designs you saved can be deleted."); return; }
+    API.deleteMine(work.id);
+    close();
+  });
+  document.getElementById("edExport").addEventListener("click", function () {
+    var vars = API.expand(work.tokens), css = "/* " + work.name + " */\n:root {\n";
+    for (var k in vars) css += "  " + k + ": " + vars[k] + ";\n";
+    css += "}\n";
+    try {
+      var b = new Blob([css], { type: "text/css" }), u = URL.createObjectURL(b);
+      var a = document.createElement("a");
+      a.href = u; a.download = (work.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")) + ".css";
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(u); }, 300);
+    } catch (e) {
+      if (navigator.clipboard) navigator.clipboard.writeText(css);
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && ed.classList.contains("open")) close();
+    if (e.key.toLowerCase() === "e" && !ed.classList.contains("open") &&
+        e.target.tagName !== "INPUT" && e.target.tagName !== "SELECT" && e.target.tagName !== "TEXTAREA") open();
+  });
+})();
+</script>

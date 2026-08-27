@@ -1,0 +1,290 @@
+<div class="lay">
+  <aside class="side">
+    <h1>Components</h1>
+    <span class="cnt" id="libCount">—</span>
+    <nav id="cats"></nav>
+    <div class="tools">
+      <button class="btn" id="copyAll">Copy whole library</button>
+      <button class="btn" id="expandAll">Expand all code</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="bar">
+      <input class="in" id="q" type="search" placeholder="Search components, tags, techniques…" aria-label="Search">
+      <button class="btn" id="openAllBtn">Show code</button>
+      <span class="count" id="shown">—</span>
+    </div>
+
+    <div class="head">
+      <h2>Copy-paste component library</h2>
+      <p>Every component below is self-contained — its HTML, CSS and JS have no dependencies and no build step. The code shown is the code running: each preview is mounted from the same strings you copy, so a snippet can never drift from what you see. <strong style="color:var(--cy)">Copy for AI</strong> wraps a component with instructions, ready to paste into another session to show it exactly the style you want.</p>
+    </div>
+
+    <div id="out"></div>
+    <p class="empty" id="empty">Nothing matches that search.</p>
+  </main>
+</div>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+(function () {
+  "use strict";
+  var C = (window.COMPONENTS || []).slice();
+  var $ = function (i) { return document.getElementById(i); };
+  var out = $("out"), styles = $("compStyles"), toast = $("toast");
+  var activeCat = "All", term = "";
+
+  if (!C.length) { out.innerHTML = '<p class="err">components.js is empty — the library has not been generated yet.</p>'; return; }
+
+  /* ---- inject every component stylesheet once ---- */
+  styles.textContent = C.map(function (c) { return "/* " + c.id + " */\n" + c.css; }).join("\n\n");
+
+  /* ---- tiny syntax highlighter (display only) ---- */
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function hi(code, kind) {
+    var s = esc(code);
+    if (kind === "html") {
+      s = s.replace(/(&lt;\/?)([a-zA-Z][\w-]*)/g, '$1<span class="t">$2</span>')
+           .replace(/([a-zA-Z-]+)=(&quot;|")([^"]*)\2/g, '<span class="a">$1</span>=<span class="s">"$3"</span>');
+    } else if (kind === "css") {
+      s = s.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="c">$1</span>')
+           .replace(/^([^{}\n]+)\{/gm, '<span class="t">$1</span>{')
+           .replace(/([a-z-]+)\s*:/g, '<span class="a">$1</span>:');
+    } else {
+      s = s.replace(/(\/\/[^\n]*)/g, '<span class="c">$1</span>')
+           .replace(/\b(var|let|const|function|return|if|else|for|new|this)\b/g, '<span class="k">$1</span>')
+           .replace(/(&quot;[^&]*?&quot;|'[^']*?')/g, '<span class="s">$1</span>');
+    }
+    return s;
+  }
+
+  function bundle(c) {
+    return "<!-- " + c.name + " — " + c.note + " -->\n" + c.html +
+           "\n\n<style>\n" + c.css + "\n</style>" +
+           (c.js.trim() ? "\n\n<script>\n(function(){\n  var root = document.querySelector('." + c.id + "');\n" +
+             c.js.split("\n").map(function (l) { return "  " + l; }).join("\n") + "\n})();\n<\/script>" : "");
+  }
+  function forAI(c) {
+    return "Here is a UI component whose style I want you to follow. Match its visual language, " +
+      "spacing, motion and code conventions in what you build for me.\n\n" +
+      "Component: " + c.name + " (" + c.cat + ")\nTechnique: " + c.note + "\n\n" + bundle(c) + "\n";
+  }
+
+  function copy(text, label) {
+    function done(ok) {
+      toast.textContent = ok ? (label || "Copied") : "Copy blocked — select the code instead";
+      toast.classList.add("on");
+      setTimeout(function () { toast.classList.remove("on"); }, 1600);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else done(false);
+  }
+
+  /* Hundreds of components each run their own animation loop. Mounting all of
+     them would leave every loop running forever. Cards mount as they approach
+     the viewport and are released once well past it, so the number of live
+     components stays bounded however large the library grows. Removing the DOM
+     is the only reliable way to stop loops the harness cannot reach. */
+  var allCards = [];
+  var sweepQueued = false;
+  /* Geometry sweep. IntersectionObserver is the fast path, but it does not fire
+     in every host (embedded panes, some headless contexts), which would leave
+     the whole library blank. This measures directly, so mounting never depends
+     on the observer firing. */
+  function sweep() {
+    sweepQueued = false;
+    var vh = window.innerHeight || 800, pad = 600;
+    for (var i = 0; i < allCards.length; i++) {
+      var card = allCards[i];
+      var r = card.getBoundingClientRect();
+      if (r.bottom > -pad && r.top < vh + pad) card._mount();
+      else if (card._mounted && !card.classList.contains("open")) card._unmount();
+    }
+  }
+  function queueSweep() {
+    if (sweepQueued) return;
+    sweepQueued = true;
+    /* rAF is the right cadence, but it does not fire in every host (embedded
+       panes with a frozen frame clock). The timeout guarantees the sweep runs
+       regardless, so the library can never render as a page of empty cards. */
+    requestAnimationFrame(sweep);
+    setTimeout(function () { if (sweepQueued) sweep(); }, 120);
+  }
+  addEventListener("scroll", queueSweep, { passive: true });
+  addEventListener("resize", queueSweep);
+
+  var mountObserver = null;
+  if ("IntersectionObserver" in window) {
+    mountObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var card = e.target;
+        if (e.isIntersecting) card._mount();
+        else if (card._mounted && !card.classList.contains("open")) card._unmount();
+      });
+    }, { rootMargin: "600px 0px" });
+  }
+
+  /* ---- render ---- */
+  function render() {
+    if (mountObserver) mountObserver.disconnect();
+    allCards.length = 0;
+    out.innerHTML = "";
+    var cats = [], seen = {};
+    C.forEach(function (c) { if (!seen[c.cat]) { seen[c.cat] = 1; cats.push(c.cat); } });
+    var shown = 0;
+
+    cats.forEach(function (cat) {
+      if (activeCat !== "All" && activeCat !== cat) return;
+      var list = C.filter(function (c) {
+        if (c.cat !== cat) return false;
+        if (!term) return true;
+        return (c.id + " " + c.name + " " + c.cat + " " + c.tags + " " + c.note).toLowerCase().indexOf(term) !== -1;
+      });
+      if (!list.length) return;
+      shown += list.length;
+
+      var row = document.createElement("div");
+      row.className = "catrow";
+      row.innerHTML = "<h3></h3><span>" + list.length + " components</span>" +
+                      '<button class="btn">Copy category for AI</button>';
+      row.querySelector("h3").textContent = cat;
+      row.querySelector("button").addEventListener("click", function () {
+        copy(list.map(forAI).join("\n\n———\n\n"), "Copied " + list.length + " components");
+      });
+      out.appendChild(row);
+
+      var grid = document.createElement("div");
+      grid.className = "grid";
+      out.appendChild(grid);
+
+      list.forEach(function (c) {
+        var card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML =
+          '<div class="stage"></div>' +
+          '<div class="meta"><b></b><small></small></div>' +
+          '<div class="acts">' +
+            '<button class="btn pri" data-a="ai">Copy for AI</button>' +
+            '<button class="btn" data-a="all">Copy all</button>' +
+            '<button class="btn" data-a="html">HTML</button>' +
+            '<button class="btn" data-a="css">CSS</button>' +
+            (c.js.trim() ? '<button class="btn" data-a="js">JS</button>' : '') +
+            '<button class="btn" data-a="toggle">Code</button>' +
+          '</div>' +
+          '<div class="code"><div class="tabs">' +
+            '<button aria-selected="true" data-t="html">HTML</button>' +
+            '<button data-t="css">CSS</button>' +
+            (c.js.trim() ? '<button data-t="js">JS</button>' : '') +
+          '</div><pre></pre></div>';
+
+        card.querySelector(".meta b").textContent = c.name;
+        card.querySelector(".meta small").textContent = c.note;
+
+        /* Attach BEFORE mounting. A detached element has no layout, so any
+           component that measures itself on init sees zeroes and either
+           throws or renders nothing. */
+        grid.appendChild(card);
+        var stage = card.querySelector(".stage");
+        card._mount = function () {
+          if (card._mounted) return;
+          card._mounted = true;
+          try {
+            stage.innerHTML = c.html;
+            if (c.js.trim()) {
+              var rootEl = stage.querySelector("." + c.id) || stage.firstElementChild;
+              if (rootEl) new Function("root", c.js)(rootEl);
+            }
+          } catch (e) {
+            stage.innerHTML = '<div class="err">mount failed: ' + esc(e.message) + "</div>";
+          }
+          requestAnimationFrame(function () {
+            var el = stage.firstElementChild;
+            if (!el || el.classList.contains("err")) return;
+            var r = el.getBoundingClientRect();
+            if (r.width > 4 && r.height > 4) return;
+            stage.classList.add("forced");
+            var tag = document.createElement("span");
+            tag.className = "forcedtag";
+            tag.textContent = "shown forced \u00b7 normally hidden until triggered";
+            stage.appendChild(tag);
+          });
+        };
+        card._unmount = function () {
+          if (!card._mounted) return;
+          card._mounted = false;
+          stage.innerHTML = "";
+          stage.classList.remove("forced");
+        };
+        allCards.push(card);
+        if (mountObserver) mountObserver.observe(card);
+
+        var pre = card.querySelector("pre");
+        function showTab(t) {
+          pre.innerHTML = hi(c[t] || "", t);
+          card.querySelectorAll(".tabs button").forEach(function (b) {
+            b.setAttribute("aria-selected", b.dataset.t === t ? "true" : "false");
+          });
+        }
+        showTab("html");
+        card.querySelectorAll(".tabs button").forEach(function (b) {
+          b.addEventListener("click", function () { showTab(b.dataset.t); });
+        });
+        card.querySelectorAll(".acts .btn").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var a = b.dataset.a;
+            if (a === "toggle") { card.classList.toggle("open"); return; }
+            if (a === "ai") return copy(forAI(c), "Copied " + c.name + " for AI");
+            if (a === "all") return copy(bundle(c), "Copied " + c.name);
+            copy(c[a] || "", a.toUpperCase() + " copied");
+          });
+        });
+      });
+    });
+
+    sweep();                      /* mount what is on screen immediately */
+    $("shown").textContent = shown + " of " + C.length;
+    $("empty").style.display = shown ? "none" : "block";
+  }
+
+  /* ---- sidebar ---- */
+  (function () {
+    var nav = $("cats"), cats = ["All"], seen = {};
+    C.forEach(function (c) { if (!seen[c.cat]) { seen[c.cat] = 1; cats.push(c.cat); } });
+    cats.forEach(function (cat) {
+      var b = document.createElement("button");
+      var n = cat === "All" ? C.length : C.filter(function (c) { return c.cat === cat; }).length;
+      b.innerHTML = "<span></span><i>" + n + "</i>";
+      b.children[0].textContent = cat;
+      b.setAttribute("aria-current", cat === "All" ? "true" : "false");
+      b.addEventListener("click", function () {
+        activeCat = cat;
+        nav.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-current", x === b ? "true" : "false"); });
+        render(); window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      nav.appendChild(b);
+    });
+    $("libCount").textContent = C.length + " components · " + (cats.length - 1) + " categories";
+  })();
+
+  $("q").addEventListener("input", function () { term = this.value.trim().toLowerCase(); render(); });
+  $("copyAll").addEventListener("click", function () {
+    copy(C.map(forAI).join("\n\n———\n\n"), "Copied all " + C.length);
+  });
+  var allOpen = false;
+  function toggleAll() {
+    allOpen = !allOpen;
+    document.querySelectorAll(".card").forEach(function (c) { c.classList.toggle("open", allOpen); });
+    $("expandAll").textContent = allOpen ? "Collapse all code" : "Expand all code";
+    $("openAllBtn").textContent = allOpen ? "Hide code" : "Show code";
+  }
+  $("expandAll").addEventListener("click", toggleAll);
+  $("openAllBtn").addEventListener("click", toggleAll);
+
+  render();
+})();
+</script>
+</body>
+</html>

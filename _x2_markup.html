@@ -1,0 +1,158 @@
+  <!-- ══════════ 20 · MENUS ══════════ -->
+  <section class="scene" id="menus">
+    <div class="head">
+      <p class="eyebrow">20 — Navigation</p>
+      <h2>Menus</h2>
+      <p class="lede">Seven ways to open something. Radial arcs, fuzzy command matching with keyboard control, a hamburger that morphs into an X, nested context menus, a rail that grows labels, and a sheet you can throw off the bottom of the screen.</p>
+    </div>
+
+    <div class="xgrid">
+      <div class="xcell"><span class="xname">Radial menu</span>
+        <div class="rad-host" id="radHost"><button class="xbtn sm rad-trigger" id="radBtn">＋</button></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Hamburger → X</span>
+        <button class="burger" id="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+      </div>
+
+      <div class="xcell"><span class="xname">Context menu · right-click</span>
+        <div class="ctx-zone" id="ctxZone">Right-click here</div>
+      </div>
+
+      <div class="xcell"><span class="xname">Expanding rail</span>
+        <div class="rail" id="rail">
+          <a href="#0"><b>◈</b><span>Dashboard</span></a>
+          <a href="#0"><b>◇</b><span>Projects</span></a>
+          <a href="#0"><b>▤</b><span>Reports</span></a>
+          <a href="#0"><b>◎</b><span>Team</span></a>
+          <a href="#0"><b>⚙</b><span>Settings</span></a>
+        </div>
+      </div>
+
+      <div class="xcell"><span class="xname">Bottom sheet · drag to dismiss</span>
+        <button class="xbtn sm" id="sheetBtn">Open sheet</button>
+      </div>
+
+      <div class="xcell wide"><span class="xname">Command palette · ⌘K</span>
+        <button class="xbtn sm" id="cmdBtn">Open palette</button>
+        <small class="xhint">Or press ⌘K / Ctrl-K. Arrow keys navigate, Enter selects.</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 21 · LIVE DASHBOARD ══════════ -->
+  <section class="scene" id="livedash">
+    <div class="head">
+      <p class="eyebrow">21 — Dashboard</p>
+      <h2>Live instruments</h2>
+      <p class="lede">Charts that stream, tables that reorder themselves with FLIP, a gauge with a weighted needle, and a kanban you can actually drag cards between. Everything is canvas or SVG, still no libraries.</p>
+    </div>
+
+    <div class="xgrid">
+      <div class="xcell wide"><span class="xname">Streaming line chart</span>
+        <canvas id="liveChart" class="livecv"></canvas>
+        <div class="chartlegend"><span><i style="background:var(--cy)"></i>Throughput</span><span><i style="background:var(--hot)"></i>Latency</span><span class="cnum" id="liveNum">—</span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Counting KPIs</span>
+        <div class="kpirow" id="kpiRow"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Gauge · weighted needle</span>
+        <div class="gauge-wrap"><svg id="gauge" viewBox="0 0 160 100">
+          <path class="gtrack" d="M14,90 A66,66 0 0,1 146,90"/>
+          <path class="gval" id="gval" d="M14,90 A66,66 0 0,1 146,90"/>
+          <line class="gneedle" id="gneedle" x1="80" y1="90" x2="80" y2="34"/>
+          <circle cx="80" cy="90" r="6" class="ghub"/>
+        </svg><span class="gnum" id="gnum">0</span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Donut · hover to isolate</span>
+        <div class="donut-wrap"><svg id="donut" viewBox="0 0 120 120"></svg><div class="dlegend" id="dlegend"></div></div>
+      </div>
+
+      <div class="xcell wide"><span class="xname">FLIP sortable table — click a header</span>
+        <div class="ftable">
+          <table id="flipTable">
+            <thead><tr><th data-k="name">Desk</th><th data-k="pnl" class="n">P&amp;L</th><th data-k="vol" class="n">Volume</th><th data-k="win" class="n">Win %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="xcell"><span class="xname">Drag to reorder</span>
+        <ul class="reorder" id="reorder"></ul>
+      </div>
+
+      <div class="xcell"><span class="xname">Resizable panes</span>
+        <div class="split" id="split"><div class="pa">Left</div><div class="hdl"></div><div class="pb">Right</div></div>
+      </div>
+
+      <div class="xcell wide"><span class="xname">Kanban · drag cards between columns</span>
+        <div class="kb" id="kanban"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 22 · INTERACTIVE ══════════ -->
+  <section class="scene" id="interactive">
+    <div class="head">
+      <p class="eyebrow">22 — Interaction</p>
+      <h2>Hands on</h2>
+      <p class="lede">Momentum, inertia and real pointer physics. Fling the carousel, throw the cards away, drag both ends of the range, pick a colour from an actual HSL field.</p>
+    </div>
+
+    <div class="xgrid">
+      <div class="xcell wide"><span class="xname">Momentum carousel · drag or fling</span>
+        <div class="carousel" id="carousel"><div class="track" id="ctrack"></div></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Before / after</span>
+        <div class="compare" id="compare">
+          <div class="ca"></div><div class="cb" id="cbClip"></div>
+          <div class="chandle" id="chandle"><i></i></div>
+        </div>
+      </div>
+
+      <div class="xcell"><span class="xname">Dual range</span>
+        <div class="drange" id="drange"><i class="tr"></i><i class="sel"></i><b class="t1"></b><b class="t2"></b><em class="lbl"></em></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Colour picker</span>
+        <div class="cpick"><canvas id="cpCv"></canvas><span class="cpout" id="cpOut">#38F2E4</span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Half-star rating</span>
+        <div class="rate" id="rate"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Upload · progress ring</span>
+        <div class="upl" id="upl"><svg viewBox="0 0 60 60"><circle class="ut" cx="30" cy="30" r="25"/><circle class="uv" id="uvRing" cx="30" cy="30" r="25"/></svg><span class="upct" id="upct">Drop</span></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Swipe cards · fling away</span>
+        <div class="swipe" id="swipe"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Height accordion</span>
+        <div class="acc" id="acc"></div>
+      </div>
+
+      <div class="xcell"><span class="xname">Follow tooltip</span>
+        <div class="ttz" id="ttz">Hover anywhere in this box<div class="tt" id="tt">x: 0 · y: 0</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- overlays -->
+  <div class="scrim2" id="scrim2"></div>
+  <div class="fsmenu" id="fsmenu">
+    <a href="#0">Work</a><a href="#0">Studio</a><a href="#0">Process</a><a href="#0">Journal</a><a href="#0">Contact</a>
+  </div>
+  <div class="sheet" id="sheet"><div class="grab"></div><h3>Bottom sheet</h3><p>Drag this downward and let go past the threshold to dismiss it. Release above it and it springs back.</p><button class="xbtn sm" id="sheetClose">Close</button></div>
+  <div class="cmdk" id="cmdk">
+    <div class="cin"><span>⌘</span><input id="cmdInput" placeholder="Type a command…" autocomplete="off"></div>
+    <div class="cres" id="cmdRes"></div>
+    <div class="cfoot"><span>↑↓ navigate</span><span>⏎ select</span><span>esc close</span></div>
+  </div>
+  <div class="ctxm" id="ctxm"></div>
