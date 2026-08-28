@@ -36,6 +36,29 @@
   var out = $("out"), styles = $("compStyles"), toast = $("toast");
   var activeCat = "All", term = "";
 
+  /* Categories are grouped into families for the sidebar. A category written
+     "Motion · Cards" belongs to family "Motion"; everything else is mapped
+     explicitly below. activeCat holds "All", an exact category name, or
+     "fam:<Family>" when a whole family is selected. */
+  var FAMILY = {
+    "Market Data": "Finance", "Portfolio": "Finance", "Crypto": "Finance",
+    "Trading": "Finance", "Risk": "Finance", "Payments": "Finance",
+    "Price Display": "Finance", "Positions": "Finance", "Market Overview": "Finance",
+    "Retail Style": "Finance", "Crypto Trading": "Finance", "Institutional": "Finance",
+    "Order Flow": "Finance", "Banking": "Finance", "Order Entry": "Finance",
+    "Blotter": "Finance", "News & Events": "Finance", "Depth & Book": "Finance",
+    "Trade Charts": "Finance", "Terminal Style": "Terminal"
+  };
+  function famOf(cat) {
+    var i = cat.indexOf(" \u00b7 ");
+    return i > 0 ? cat.slice(0, i) : (FAMILY[cat] || "Interface");
+  }
+  function catVisible(cat) {
+    if (activeCat === "All") return true;
+    if (activeCat.indexOf("fam:") === 0) return famOf(cat) === activeCat.slice(4);
+    return activeCat === cat;
+  }
+
   if (!C.length) { out.innerHTML = '<p class="err">components.js is empty — the library has not been generated yet.</p>'; return; }
 
   /* ---- inject every component stylesheet once ---- */
@@ -137,7 +160,7 @@
     var shown = 0;
 
     cats.forEach(function (cat) {
-      if (activeCat !== "All" && activeCat !== cat) return;
+      if (!catVisible(cat)) return;
       var list = C.filter(function (c) {
         if (c.cat !== cat) return false;
         if (!term) return true;
@@ -249,24 +272,87 @@
     $("empty").style.display = shown ? "none" : "block";
   }
 
-  /* ---- sidebar ---- */
+  /* ---- sidebar ----
+     A flat list of 80+ categories is unscannable, so they are grouped by family.
+     Clicking a family filters to everything inside it; the chevron expands it to
+     its individual categories. Families stay collapsed until opened. */
   (function () {
-    var nav = $("cats"), cats = ["All"], seen = {};
-    C.forEach(function (c) { if (!seen[c.cat]) { seen[c.cat] = 1; cats.push(c.cat); } });
-    cats.forEach(function (cat) {
-      var b = document.createElement("button");
-      var n = cat === "All" ? C.length : C.filter(function (c) { return c.cat === cat; }).length;
-      b.innerHTML = "<span></span><i>" + n + "</i>";
-      b.children[0].textContent = cat;
-      b.setAttribute("aria-current", cat === "All" ? "true" : "false");
-      b.addEventListener("click", function () {
-        activeCat = cat;
-        nav.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-current", x === b ? "true" : "false"); });
-        render(); window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-      nav.appendChild(b);
+    var nav = $("cats"), fams = [], byFam = {}, seen = {};
+    C.forEach(function (c) {
+      if (seen[c.cat]) return;
+      seen[c.cat] = 1;
+      var f = famOf(c.cat);
+      if (!byFam[f]) { byFam[f] = []; fams.push(f); }
+      byFam[f].push(c.cat);
     });
-    $("libCount").textContent = C.length + " components · " + (cats.length - 1) + " categories";
+    fams.sort(function (a, b) {
+      var d = byFam[b].length - byFam[a].length;
+      return d || a.localeCompare(b);
+    });
+
+    var buttons = [];
+    function setActive(btn) {
+      buttons.forEach(function (x) { x.setAttribute("aria-current", x === btn ? "true" : "false"); });
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function mkBtn(label, count, cls) {
+      var b = document.createElement("button");
+      b.className = cls;
+      b.innerHTML = "<span></span><i>" + count + "</i>";
+      b.children[0].textContent = label;
+      b.setAttribute("aria-current", "false");
+      buttons.push(b);
+      return b;
+    }
+
+    var all = mkBtn("All", C.length, "famlink");
+    all.setAttribute("aria-current", "true");
+    all.addEventListener("click", function () { activeCat = "All"; setActive(all); });
+    nav.appendChild(all);
+
+    fams.forEach(function (f) {
+      var cats = byFam[f].slice().sort();
+      var total = C.filter(function (c) { return famOf(c.cat) === f; }).length;
+
+      var grp = document.createElement("div");
+      grp.className = "famgrp";
+
+      var head = document.createElement("div");
+      head.className = "famhead";
+      var fb = mkBtn(f, total, "famlink");
+      fb.addEventListener("click", function () { activeCat = "fam:" + f; setActive(fb); });
+      var tog = document.createElement("button");
+      tog.className = "famtog";
+      tog.setAttribute("aria-expanded", "false");
+      tog.setAttribute("aria-label", "Show the " + cats.length + " categories in " + f);
+      tog.textContent = "\u203a";
+      head.appendChild(fb);
+      head.appendChild(tog);
+      grp.appendChild(head);
+
+      var sub = document.createElement("div");
+      sub.className = "famsub";
+      cats.forEach(function (cat) {
+        var n = C.filter(function (c) { return c.cat === cat; }).length;
+        var label = cat.indexOf(" \u00b7 ") > 0 ? cat.slice(cat.indexOf(" \u00b7 ") + 3) : cat;
+        var b = mkBtn(label, n, "catlink");
+        b.title = cat;
+        b.addEventListener("click", function () { activeCat = cat; setActive(b); });
+        sub.appendChild(b);
+      });
+      grp.appendChild(sub);
+
+      tog.addEventListener("click", function () {
+        var open = grp.classList.toggle("open");
+        tog.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      nav.appendChild(grp);
+    });
+
+    $("libCount").textContent =
+      C.length + " components \u00b7 " + Object.keys(seen).length + " categories \u00b7 " +
+      fams.length + " families";
   })();
 
   $("q").addEventListener("input", function () { term = this.value.trim().toLowerCase(); render(); });

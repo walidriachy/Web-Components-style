@@ -23,8 +23,6 @@ a{color:inherit;}
 /* shell */
 .lay{display:grid;grid-template-columns:224px 1fr;min-height:100vh;}
 
-}
-
 .side{
   position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--line);
   padding:64px 14px 30px;background:var(--panel);
@@ -110,6 +108,28 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
   opacity:0;transform:translateY(12px);transition:.22s;pointer-events:none;font-weight:600;
 }
 .toast.on{opacity:1;transform:none;}
+/* Grouped sidebar. The generic `.side nav button` rule above still supplies the
+   shared look; these override layout per role. Specificity beats it (two classes
+   vs one class + element), and source order agrees, so no !important is needed. */
+.side nav .famgrp{display:flex;flex-direction:column;}
+.side nav .famhead{display:flex;align-items:stretch;gap:2px;}
+.side nav .famhead .famlink{flex:1;min-width:0;}
+.side nav .famlink{font-weight:600;color:var(--ink);}
+.side nav .famtog{
+  all:unset;cursor:pointer;width:26px;flex:0 0 26px;display:grid;place-items:center;
+  border-radius:7px;color:var(--faint);font-size:15px;line-height:1;
+  transition:transform .18s,background .16s,color .16s;
+}
+.side nav .famtog:hover{background:rgba(255,255,255,.06);color:var(--ink);}
+.side nav .famtog:focus-visible{outline:2px solid var(--cy);outline-offset:-2px;}
+.side nav .famgrp.open .famtog{transform:rotate(90deg);color:var(--cy);}
+.side nav .famsub{
+  display:none;flex-direction:column;gap:1px;
+  margin:1px 0 5px 11px;padding-left:8px;border-left:1px solid var(--line);
+}
+.side nav .famgrp.open .famsub{display:flex;}
+.side nav .catlink{font-size:12px;padding:6px 9px;}
+
 /* Stacked layout: a 45-item vertical sidebar would push every component
    almost 1800px down the page. Collapse it to a horizontal scrolling
    strip so the first component stays near the top of the screen. */
@@ -125,6 +145,7 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
   .side .tools .btn{flex:1;text-align:center;}
   .main{padding-top:18px;}
   .bar{margin-top:-18px;}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
 </head>

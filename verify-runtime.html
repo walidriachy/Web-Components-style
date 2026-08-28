@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Component runtime verification</title>
+<style>
+  body{margin:0;background:#07080D;color:#F2F4F8;font:13px ui-monospace,Menlo,monospace;padding:16px;}
+  #stageHost{position:absolute;left:-99999px;top:0;width:340px;}
+  .cell{width:340px;min-height:158px;padding:20px;background:#0A0C12;box-sizing:border-box;}
+  #out{white-space:pre-wrap;line-height:1.6;}
+  .bad{color:#FF2D6F;} .ok{color:#3BE08A;} .warn{color:#FFC24B;}
+</style>
+</head>
+<body>
+<h1 style="font-size:15px;margin:0 0 12px">Runtime verification</h1>
+<div id="out">loading…</div>
+<div id="stageHost"></div>
+<script src="components.js"></script>
+<script>
+/* Mounts every component the way library.html does — same html/css/js strings, same
+   `new Function("root", js)(rootEl)` call — and records what actually happens. Catches
+   the class of failure libcheck.py cannot see: throws at mount, and components that
+   mount cleanly but paint nothing. Batched so hundreds of live rAF loops never run at once. */
+(function () {
+  var C = window.COMPONENTS || [];
+  var host = document.getElementById('stageHost');
+  var out = document.getElementById('out');
+  var style = document.createElement('style');
+  document.head.appendChild(style);
+  style.textContent = C.map(function (c) { return c.css || ''; }).join('\n');
+
+  var results = [];
+  var BATCH = 25, SETTLE = 700;
+
+  function measure(cell, c) {
+    var r = { id: c.id, cat: c.cat };
+    var kids = cell.querySelectorAll('*');
+    r.nodes = kids.length;
+    var painted = 0, maxA = 0;
+    for (var i = 0; i < kids.length; i++) {
+      var b = kids[i].getBoundingClientRect();
+      if (b.width > 1 && b.height > 1) painted++;
+      maxA = Math.max(maxA, b.width * b.height);
+    }
+    r.painted = painted;
+    r.area = Math.round(maxA);
+    var cv = cell.querySelector('canvas');
+    if (cv) {
+      r.canvas = cv.width + 'x' + cv.height;
+      try {
+        var g = cv.getContext('2d');
+        if (g) {
+          var d = g.getImageData(0, 0, cv.width, cv.height).data, lit = 0;
+          for (var p = 3; p < d.length; p += 4 * 37) if (d[p] > 8) lit++;
+          r.canvasLit = lit;
+        } else { r.canvasLit = -1; } /* webgl — not sampled here */
+      } catch (e) { r.canvasLit = -1; }
+    }
+    return r;
+  }
+
+  function runBatch(start, done) {
+    var slice = C.slice(start, start + BATCH);
+    var cells = [];
+    slice.forEach(function (c) {
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      host.appendChild(cell);           /* attach BEFORE mount — detached nodes have no layout */
+      var rec = { c: c, cell: cell, err: null };
+      try {
+        cell.innerHTML = c.html;
+        if ((c.js || '').trim()) {
+          var rootEl = cell.querySelector('.' + c.id) || cell.firstElementChild;
+          if (!rootEl) throw new Error('no root element matching .' + c.id);
+          new Function('root', c.js)(rootEl);
+        }
+      } catch (e) {
+        rec.err = (e && e.message) || String(e);
+      }
+      cells.push(rec);
+    });
+    setTimeout(function () {
+      cells.forEach(function (rec) {
+        var r = rec.err
+          ? { id: rec.c.id, cat: rec.c.cat, error: rec.err }
+          : measure(rec.cell, rec.c);
+        results.push(r);
+        rec.cell.remove();
+      });
+      out.textContent = 'verified ' + results.length + ' / ' + C.length + ' …';
+      if (start + BATCH < C.length) setTimeout(function () { runBatch(start + BATCH, done); }, 30);
+      else done();
+    }, SETTLE);
+  }
+
+  runBatch(0, function () {
+    var errs  = results.filter(function (r) { return r.error; });
+    var blank = results.filter(function (r) { return !r.error && r.painted === 0; });
+    var dark  = results.filter(function (r) { return !r.error && r.canvasLit === 0; });
+    var sum = {
+      total: results.length,
+      errors: errs.length,
+      blank: blank.length,
+      darkCanvas: dark.length,
+      errorList: errs.map(function (r) { return r.id + ' :: ' + r.error; }),
+      blankList: blank.map(function (r) { return r.id; }),
+      darkList: dark.map(function (r) { return r.id; })
+    };
+    window.__VERIFY__ = { summary: sum, results: results };
+    out.innerHTML =
+      '<b>' + sum.total + '</b> components mounted\n' +
+      '<span class="' + (sum.errors ? 'bad' : 'ok') + '">errors: ' + sum.errors + '</span>\n' +
+      '<span class="' + (sum.blank ? 'warn' : 'ok') + '">blank (nothing painted): ' + sum.blank + '</span>\n' +
+      '<span class="' + (sum.darkCanvas ? 'warn' : 'ok') + '">canvas drawing nothing: ' + sum.darkCanvas + '</span>\n\n' +
+      (sum.errorList.length ? 'ERRORS\n  ' + sum.errorList.join('\n  ') + '\n\n' : '') +
+      (sum.blankList.length ? 'BLANK\n  ' + sum.blankList.join('\n  ') + '\n\n' : '') +
+      (sum.darkList.length  ? 'DARK CANVAS\n  ' + sum.darkList.join('\n  ') + '\n' : '');
+    document.title = 'DONE ' + sum.errors + 'e/' + sum.blank + 'b';
+  });
+})();
+</script>
+</body>
+</html>

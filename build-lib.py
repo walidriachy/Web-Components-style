@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Merge component workflow output -> components.js -> library.html, with hard validation."""
 import io, json, os, re, subprocess, sys, glob
+from libcheck import strip_at_blocks, unescape_markup, validate, js_ok
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 WF = os.path.expanduser("~/.claude/projects/-Users-walid-Created-Apps-in-claude-Page-Style/"
@@ -16,118 +17,6 @@ def collect():
             if isinstance(res, dict) and isinstance(res.get("components"), list):
                 rows.extend(res["components"])
     return rows
-
-def strip_at_blocks(css):
-    """Remove @keyframes bodies; unwrap @media/@supports so inner selectors are checked."""
-    out, i, kf_names = [], 0, []
-    while i < len(css):
-        m = re.compile(r'@(keyframes|media|supports|layer)[^{]*\{', re.I).search(css, i)
-        if not m:
-            out.append(css[i:]); break
-        out.append(css[i:m.start()])
-        head = css[m.start():m.end()]
-        depth, j = 1, m.end()
-        while j < len(css) and depth:
-            if css[j] == '{': depth += 1
-            elif css[j] == '}': depth -= 1
-            j += 1
-        body = css[m.end():j-1]
-        if m.group(1).lower() == "keyframes":
-            nm = re.search(r'@keyframes\s+([\w-]+)', head, re.I)
-            if nm: kf_names.append(nm.group(1))
-        else:
-            out.append(body)
-        i = j
-    return "".join(out), kf_names
-
-UNESC = [("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'), ("&#39;", "'"), ("&amp;", "&")]
-def unescape_markup(h):
-    """Agents sometimes entity-escape their markup. If it has no real tags but has
-       escaped ones, decode it — otherwise it renders as literal text."""
-    if "<" in h and "&lt;" not in h:
-        return h
-    if "&lt;" not in h:
-        return h
-    for a, b in UNESC:
-        h = h.replace(a, b)
-    return h
-
-def validate(c):
-    p = []
-    cid = c.get("id", "")
-    if not re.fullmatch(r'[a-z][a-z0-9-]{2,58}', cid): return ["bad id"]
-    for k in ("name", "cat", "html", "css"):
-        if not str(c.get(k, "")).strip(): p.append("empty " + k)
-    html, css, js = c.get("html", ""), c.get("css", ""), c.get("js", "") or ""
-    if ("class=\"" + cid) not in html and ("class='" + cid) not in html:
-        p.append("root element missing class=" + cid)
-    if css.count("{") != css.count("}"): p.append("unbalanced css braces")
-    body, kf = strip_at_blocks(css)
-    c["_kf"] = kf
-    for sel in re.findall(r'(?m)^\s*([^@{}\n][^{}\n]*)\{', body):
-        for part in sel.split(","):
-            part = part.strip()
-            if not part or part.startswith("%") or part in ("from", "to"): continue
-            if ("." + cid) not in part:
-                p.append("unscoped selector: " + part[:48]); break
-    for bad, why in ((r'(?m)^\s*\*\s*\{', "global * selector"),
-                     (r':root\s*\{', ":root"),
-                     (r'(?m)^\s*body\s*\{', "body selector"),
-                     (r'(?m)^\s*html\s*\{', "html selector")):
-        if re.search(bad, css): p.append(why)
-    if re.search(r'@import|url\(\s*[\'"]?https?:', css): p.append("external resource")
-    if "document.querySelector" in js and "root" not in js.split("document.querySelector")[0][-40:]:
-        p.append("uses document.querySelector instead of root")
-    # These are presentational components. Nothing here needs network access,
-    # storage, dynamic evaluation or navigation — so any of it is disqualifying.
-    # Two batches shipped without a completed safety review, so this is checked
-    # mechanically for every component rather than trusted.
-    BANNED = [
-        ("fetch(",            "network call"),
-        ("XMLHttpRequest",    "network call"),
-        ("sendBeacon",        "network call"),
-        ("WebSocket",         "network call"),
-        ("EventSource",       "network call"),
-        ("eval(",             "dynamic evaluation"),
-        ("new Function",      "dynamic evaluation"),
-        ("document.cookie",   "cookie access"),
-        ("localStorage",      "storage access"),
-        ("sessionStorage",    "storage access"),
-        ("indexedDB",         "storage access"),
-        ("location.href",     "navigation"),
-        ("location.replace",  "navigation"),
-        ("location.assign",   "navigation"),
-        ("window.open",       "navigation"),
-        ("postMessage",       "cross-frame messaging"),
-        ("import(",           "dynamic import"),
-        # tags are matched by regex below, not substring — "i<script.length"
-        # is ordinary code, not a nested script tag
-        ("srcdoc",            "embedded frame"),
-        ("javascript:",       "javascript: url"),
-        ("onerror=",          "inline handler"),
-    ]
-    blob = js + " " + html
-    for token, why in BANNED:
-        if token in blob:
-            p.append("disallowed capability (%s)" % why)
-            break
-    for pat, why in ((r'<\s*script[\s>/]', "nested script tag"),
-                     (r'<\s*iframe[\s>/]', "embedded frame"),
-                     (r'<\s*object[\s>/]', "embedded object"),
-                     (r'<\s*embed[\s>/]',  "embedded object")):
-        if re.search(pat, blob, re.I):
-            p.append("disallowed capability (%s)" % why)
-            break
-    return p
-
-def js_ok(js):
-    if not js.strip(): return True
-    src = "(function(root){\n" + js + "\n});"
-    f = os.path.join(BASE, "_jscheck.js")
-    io.open(f, "w", encoding="utf-8").write(src)
-    r = subprocess.run(["node", "--check", f], capture_output=True)
-    os.remove(f)
-    return r.returncode == 0
 
 # Components proven broken at runtime in the browser. Syntax checking cannot
 # catch these, so anything that fails to mount during verification is recorded

@@ -6,3 +6,7 @@
 
 .DS_Store
 *.log
+
+# python build artefacts
+__pycache__/
+*.pyc
