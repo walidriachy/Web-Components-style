@@ -23,6 +23,26 @@
    mount cleanly but paint nothing. Batched so hundreds of live rAF loops never run at once. */
 (function () {
   var C = window.COMPONENTS || [];
+
+  /* Embedded/hidden panes freeze requestAnimationFrame entirely — document.hidden is
+     true and zero frames are delivered. Any component that paints only inside a rAF
+     loop then measures as an empty canvas, which reads as a failure when nothing is
+     actually wrong. setTimeout still runs in that state, so when no frame arrives
+     within 300ms we substitute a timer-driven rAF and report which mode was used. */
+  var rafLive = false, rafMode = 'native';
+  requestAnimationFrame(function () { rafLive = true; });
+  function installShimIfFrozen(next) {
+    setTimeout(function () {
+      if (!rafLive) {
+        rafMode = 'shimmed (native rAF is frozen in this view)';
+        window.requestAnimationFrame = function (fn) {
+          return setTimeout(function () { fn(performance.now()); }, 16);
+        };
+        window.cancelAnimationFrame = function (id) { clearTimeout(id); };
+      }
+      next();
+    }, 300);
+  }
   var host = document.getElementById('stageHost');
   var out = document.getElementById('out');
   var style = document.createElement('style');
@@ -93,7 +113,7 @@
     }, SETTLE);
   }
 
-  runBatch(0, function () {
+  installShimIfFrozen(function () { runBatch(0, function () {
     var errs  = results.filter(function (r) { return r.error; });
     var blank = results.filter(function (r) { return !r.error && r.painted === 0; });
     var dark  = results.filter(function (r) { return !r.error && r.canvasLit === 0; });
@@ -106,9 +126,11 @@
       blankList: blank.map(function (r) { return r.id; }),
       darkList: dark.map(function (r) { return r.id; })
     };
+    sum.rafMode = rafMode;
     window.__VERIFY__ = { summary: sum, results: results };
     out.innerHTML =
       '<b>' + sum.total + '</b> components mounted\n' +
+      'animation clock: ' + rafMode + '\n' +
       '<span class="' + (sum.errors ? 'bad' : 'ok') + '">errors: ' + sum.errors + '</span>\n' +
       '<span class="' + (sum.blank ? 'warn' : 'ok') + '">blank (nothing painted): ' + sum.blank + '</span>\n' +
       '<span class="' + (sum.darkCanvas ? 'warn' : 'ok') + '">canvas drawing nothing: ' + sum.darkCanvas + '</span>\n\n' +
@@ -116,7 +138,7 @@
       (sum.blankList.length ? 'BLANK\n  ' + sum.blankList.join('\n  ') + '\n\n' : '') +
       (sum.darkList.length  ? 'DARK CANVAS\n  ' + sum.darkList.join('\n  ') + '\n' : '');
     document.title = 'DONE ' + sum.errors + 'e/' + sum.blank + 'b';
-  });
+  }); });
 })();
 </script>
 </body>
