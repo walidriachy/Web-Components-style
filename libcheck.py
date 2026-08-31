@@ -74,6 +74,35 @@ TAG_PATS = ((r'<\s*script[\s>/]', "nested script tag"),
             (r'<\s*object[\s>/]', "embedded object"),
             (r'<\s*embed[\s>/]',  "embedded object"))
 
+# Components legitimately show API keys, tokens and secrets as UI — a masked key row,
+# a connected-integration list. Invented sample values sometimes land on a real
+# provider's format, which makes every secret scanner treat the library as a leak and
+# blocks anyone who copies the component. These are rewritten to values that still read
+# as credentials but cannot match a provider pattern.
+SECRET_PATS = [
+    (re.compile(r'\b(sk|pk|rk)_(live|test)_[A-Za-z0-9]{10,}'),
+     lambda m: m.group(1) + "_demo_EXAMPLEkey00NOTAREAL"),
+    (re.compile(r'\bgh[pousr]_[A-Za-z0-9]{20,}'), lambda m: "ghdemo_EXAMPLEtoken00NOTAREAL"),
+    (re.compile(r'\bAKIA[0-9A-Z]{16}\b'),         lambda m: "AKIAEXAMPLE000NOTREAL"),
+    (re.compile(r'\bsk-[A-Za-z0-9]{20,}'),         lambda m: "sk-demoEXAMPLEkey00NOTAREAL"),
+    (re.compile(r'\bxox[baprs]-[A-Za-z0-9-]{10,}'), lambda m: "xoxdemo-EXAMPLE00NOTAREAL"),
+    (re.compile(r'\bAIza[0-9A-Za-z_\-]{35}'),      lambda m: "AIzaDEMOexampleKEY00NOTAREAL"),
+    (re.compile(r'-----BEGIN [A-Z ]*PRIVATE KEY'),  lambda m: "-----BEGIN EXAMPLE NOT A KEY"),
+]
+
+def sanitize(c):
+    """Rewrite provider-shaped credential placeholders. Returns what was changed."""
+    changed = []
+    for f in ("html", "css", "js"):
+        v = c.get(f) or ""
+        for pat, repl in SECRET_PATS:
+            hits = pat.findall(v)
+            if hits:
+                v = pat.sub(repl, v)
+                changed.append("%s: %d credential-shaped string(s)" % (f, len(hits)))
+        c[f] = v
+    return changed
+
 def validate(c):
     """Return a list of contract problems. Empty list == component is shippable."""
     p = []
@@ -160,6 +189,9 @@ if __name__ == "__main__":
         print("usage: libcheck.py <batch.json>"); sys.exit(2)
     data = json.load(io.open(sys.argv[1], encoding="utf-8"))
     if isinstance(data, dict): data = data.get("components", [])
+    for c in data:
+        for note in sanitize(c):
+            print("sanitised %s — %s" % (c.get("id", "?"), note))
     clean, problems = check(data, strict=True)
     # A keyframes name colliding with one already in the library would silently
     # hijack that component's animation, so check against the shipped set too.

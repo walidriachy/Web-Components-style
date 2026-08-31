@@ -268,6 +268,11 @@
     });
 
     sweep();                      /* mount what is on screen immediately */
+    /* A second pass after layout settles. The first sweep measures the scroll
+       position as it is *now*; a filter change also scrolls the page back to the
+       top, and without this the cards that land in view afterwards stay blank
+       until the next scroll event. */
+    setTimeout(sweep, 160);
     $("shown").textContent = shown + " of " + C.length;
     $("empty").style.display = shown ? "none" : "block";
   }
@@ -293,8 +298,12 @@
     var buttons = [];
     function setActive(btn) {
       buttons.forEach(function (x) { x.setAttribute("aria-current", x === btn ? "true" : "false"); });
+      /* Scroll first, then render: sweep() runs at the end of render() and must
+         measure the position the user will actually be at. Jump rather than
+         smooth-scroll — switching category is a context change, and animating
+         past thousands of pixels of the previous list serves no one. */
+      window.scrollTo(0, 0);
       render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
     function mkBtn(label, count, cls) {
       var b = document.createElement("button");

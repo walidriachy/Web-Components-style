@@ -5,7 +5,7 @@ No build step, no dependencies, no framework. Open the HTML files directly.
 
 | Page | What it is |
 |---|---|
-| **`library.html`** | **472 components** across 53 categories, each with its own copyable source |
+| **`library.html`** | **808 components** across 83 categories, each with its own copyable source |
 | **`database.html`** | **580 design languages** applied to a live 60-component interface |
 | **`extreme.html`** | 21 motion studies and 44 interactive components, hand-written canvas and WebGL |
 | **`scroll-lab.html`** | 9 scroll-driven animation techniques with their source alongside |
@@ -39,14 +39,23 @@ show it exactly the style you want. There is also *Copy category* and *Copy whol
 
 ### Coverage
 
+- **Motion — 200** across 17 categories: cards, charts, backgrounds, cursors, micro-interactions,
+  physics, morphing, 3D, feedback, navigation, data, ambient, plus buttons, loaders, reveals,
+  text and transitions
 - **Finance & trading — 193**: order entry, depth and order books, price displays, trade charts,
   positions, blotters, market data, risk, portfolio, banking, payments, crypto
 - **Terminal — 103** across 12 traditions: Bloomberg, CRT, TUI, DOS, Modern, System, Trading,
   Text, Mainframe, Retro8, Hacker
-- **Music & motion — 64**: players, visualisers, controls, plus motion buttons, loaders,
-  reveals, text and transitions
-- **General UI — 112**: buttons, inputs, selection, menus, overlays, cards, data display,
+- **Scroll — 96** across 8 categories: reveals, parallax, sticky, progress, snap, horizontal,
+  text and timelines — each building its own scroll container, so it drops into any layout
+- **Modern — 80** across 10 categories: bento grids, glass, command palettes, AI chat,
+  onboarding, pricing, auth, settings, empty states, toolbars
+- **Interface — 112**: buttons, inputs, selection, menus, overlays, cards, data display,
   charts, feedback, marketing, media, dashboard, experimental
+- **Music — 24**: players, visualisers and controls
+
+Every component is verified twice before it ships: `libcheck.py` proves it satisfies the
+contract, and `verify-runtime.html` mounts all 808 and confirms none throws or renders blank.
 
 ## The design database
 
@@ -79,9 +88,27 @@ Source lives in the `_`-prefixed partials; the pages are generated from them.
 python3 build-lib.py # rebuilds components.js and library.html
 ```
 
-`build-lib.py` validates every component before it ships and rejects anything that fails:
-unscoped selectors, colliding `@keyframes`, JS syntax errors, disallowed capabilities, or a
-proven runtime failure. Rejections are printed with their reason rather than shipped broken.
+`build-lib.py` validates every component through `libcheck.py` before it ships and rejects
+anything that fails: unscoped selectors, colliding `@keyframes`, JS syntax errors, disallowed
+capabilities, or a proven runtime failure. Rejections are printed with their reason rather
+than shipped broken.
+
+Two further rules apply to newly written components. Every `@keyframes` name must start with
+the component id, since all components share one stylesheet and an unprefixed name would
+silently hijack another component's animation. And any `requestAnimationFrame` or
+`setInterval` loop must check `root.isConnected`, because the library unmounts by clearing
+`innerHTML` and cannot otherwise stop a running loop.
+
+To check a batch before merging it:
+
+```sh
+python3 libcheck.py mybatch.json
+```
+
+Open `verify-runtime.html` to mount every component and report throws, blank renders and
+canvases that draw nothing. In an embedded view that freezes `requestAnimationFrame` it
+substitutes a timer-driven clock, so rAF-driven canvases are measured rather than
+mis-reported as empty.
 
 ## Notes
 

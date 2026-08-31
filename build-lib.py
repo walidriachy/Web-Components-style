@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Merge component workflow output -> components.js -> library.html, with hard validation."""
 import io, json, os, re, subprocess, sys, glob
-from libcheck import strip_at_blocks, unescape_markup, validate, js_ok
+from libcheck import strip_at_blocks, unescape_markup, validate, js_ok, sanitize
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 WF = os.path.expanduser("~/.claude/projects/-Users-walid-Created-Apps-in-claude-Page-Style/"
@@ -32,13 +32,16 @@ for hm in sorted(glob.glob(os.path.join(BASE, "_handmade*.json"))):
     raw = extra + raw
     print("including %d hand-written from %s" % (len(extra), os.path.basename(hm)))
 print("collected %d component records" % len(raw))
-seen, good, rejected, renamed = set(), [], {}, [0]
+seen, good, rejected, renamed, redacted = set(), [], {}, [0], [0]
 for c in raw:
     cid = c.get("id", "")
     if cid in BLOCK:
         rejected["runtime failure"] = rejected.get("runtime failure", 0) + 1
         continue
     c["html"] = unescape_markup(c.get("html", "") or "")
+    # never ship a string shaped like a real provider credential, even an invented one
+    for note in sanitize(c):
+        redacted[0] += 1
     # A colliding id is a regenerated variant, not waste. The id IS the class
     # prefix, so renaming it consistently across html/css/js yields a clean,
     # independent component instead of a dropped one.
@@ -75,7 +78,8 @@ if clash:
     print("dropped %d for colliding @keyframes names: %s" % (before - len(good), sorted(clash)[:6]))
 good = [{k: c[k] for k in ("id", "name", "cat", "tags", "note", "html", "css", "js")} for c in good]
 
-print("accepted %d | rejected %d | renamed variants %d" % (len(good), len(raw) - len(good), renamed[0]))
+print("accepted %d | rejected %d | renamed variants %d | credential-shaped strings redacted %d"
+      % (len(good), len(raw) - len(good), renamed[0], redacted[0]))
 if rejected: print("rejection reasons:", dict(sorted(rejected.items(), key=lambda x: -x[1])))
 cats = {}
 for c in good: cats[c["cat"]] = cats.get(c["cat"], 0) + 1
