@@ -5,7 +5,7 @@ No build step, no dependencies, no framework. Open the HTML files directly.
 
 | Page | What it is |
 |---|---|
-| **`library.html`** | **808 components** across 83 categories, each with its own copyable source |
+| **`library.html`** | **968 components** across 103 categories, each with its own copyable source |
 | **`database.html`** | **580 design languages** applied to a live 60-component interface |
 | **`extreme.html`** | 21 motion studies and 44 interactive components, hand-written canvas and WebGL |
 | **`scroll-lab.html`** | 9 scroll-driven animation techniques with their source alongside |
@@ -44,8 +44,19 @@ show it exactly the style you want. There is also *Copy category* and *Copy whol
   text and transitions
 - **Finance & trading — 193**: order entry, depth and order books, price displays, trade charts,
   positions, blotters, market data, risk, portfolio, banking, payments, crypto
-- **Terminal — 103** across 12 traditions: Bloomberg, CRT, TUI, DOS, Modern, System, Trading,
-  Text, Mainframe, Retro8, Hacker
+- **Trading desk — 64** across 8 institutional desks: hedge fund (NAV, AUM, exposure, drawdown
+  vs high-water mark, LP capital accounts, fee accrual), execution (algo wheel, parent/child
+  fills, VWAP vs arrival, venue routing, slippage), research, macro, derivatives (chain, greeks,
+  vol smile, term structure, payoff), fixed income (yield solver, DV01, duration, spreads),
+  compliance (surveillance, restricted list, audit trail) and prime brokerage (margin, stock
+  loan, haircuts, settlement fails)
+- **Trading charts — 48** across 6 categories: candles (OHLC, hollow, Heikin-Ashi, point &
+  figure), depth, technical indicators computed live from a price series (RSI, MACD, Bollinger,
+  stochastic, ATR, Ichimoku), volume profile and VWAP, performance and drawdown, correlation
+- **Terminal — 151** across 18 categories: Bloomberg and Bloomberg Pro (DES, GP, PORT, ANR, ECO,
+  MSG, HP), terminal charts drawn in block glyphs, quant, ticker tape and wire, keyboard command
+  lines, feed and infrastructure monitors, plus CRT, TUI, DOS, System, Text, Mainframe, Retro8,
+  Hacker and Modern
 - **Scroll — 96** across 8 categories: reveals, parallax, sticky, progress, snap, horizontal,
   text and timelines — each building its own scroll container, so it drops into any layout
 - **Modern — 80** across 10 categories: bento grids, glass, command palettes, AI chat,
@@ -55,7 +66,7 @@ show it exactly the style you want. There is also *Copy category* and *Copy whol
 - **Music — 24**: players, visualisers and controls
 
 Every component is verified twice before it ships: `libcheck.py` proves it satisfies the
-contract, and `verify-runtime.html` mounts all 808 and confirms none throws or renders blank.
+contract, and `verify-runtime.html` mounts all 968 and confirms none throws or renders blank.
 
 ## The design database
 
