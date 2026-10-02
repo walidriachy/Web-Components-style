@@ -75,9 +75,56 @@
           return setTimeout(function () { fn(performance.now()); }, 16);
         };
         window.cancelAnimationFrame = function (id) { clearTimeout(id); };
+        /* IntersectionObserver and ResizeObserver deliver their callbacks in the same
+           rendering steps as rAF, so in a frozen view they never fire either — and a
+           component that sizes its canvas or starts its loop from one of them stays
+           at the default 300x150 and draws nothing. Every cell here is in the viewport
+           by construction, so reporting "intersecting" and the element's real size is
+           the truth, just delivered on a timer. */
+        installObserverShims();
+        rafMode += ' + IntersectionObserver/ResizeObserver shimmed';
       }
       next();
     }, 300);
+  }
+
+  function installObserverShims() {
+    function boxes(el) {
+      var r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      var pw = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) +
+               parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+      var ph = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) +
+               parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+      var w = Math.max(0, r.width - pw), h = Math.max(0, r.height - ph);
+      var dpr = window.devicePixelRatio || 1;
+      return { r: r, w: w, h: h, dpr: dpr };
+    }
+    function Observer(kind, cb) {
+      var self = this, targets = [];
+      this.observe = function (el) {
+        if (targets.indexOf(el) === -1) targets.push(el);
+        setTimeout(function () {
+          if (targets.indexOf(el) === -1 || !el.isConnected) return;
+          var b = boxes(el), entry;
+          if (kind === 'io') {
+            entry = { target: el, isIntersecting: true, intersectionRatio: 1, boundingClientRect: b.r,
+                      intersectionRect: b.r, rootBounds: null, time: performance.now() };
+          } else {
+            entry = { target: el,
+                      contentRect: { x: 0, y: 0, top: 0, left: 0, width: b.w, height: b.h, right: b.w, bottom: b.h },
+                      contentBoxSize: [{ inlineSize: b.w, blockSize: b.h }],
+                      borderBoxSize: [{ inlineSize: b.r.width, blockSize: b.r.height }],
+                      devicePixelContentBoxSize: [{ inlineSize: Math.round(b.w * b.dpr), blockSize: Math.round(b.h * b.dpr) }] };
+          }
+          try { cb([entry], self); } catch (e) { setTimeout(function () { throw e; }); }
+        }, 0);
+      };
+      this.unobserve = function (el) { var i = targets.indexOf(el); if (i > -1) targets.splice(i, 1); };
+      this.disconnect = function () { targets.length = 0; };
+      this.takeRecords = function () { return []; };
+    }
+    window.IntersectionObserver = function (cb) { Observer.call(this, 'io', cb); };
+    window.ResizeObserver = function (cb) { Observer.call(this, 'ro', cb); };
   }
 
   /* Errors raised after mount (in a timer, a frame, an observer) carry the

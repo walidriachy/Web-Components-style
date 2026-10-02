@@ -155,12 +155,19 @@ SECRET_PATS = [
     (re.compile(r'\b(sk|pk|rk)_(live|test)_[A-Za-z0-9]{10,}'),
      lambda m: m.group(1) + "_demo_EXAMPLEkey00NOTAREAL"),
     (re.compile(r'\bgh[pousr]_[A-Za-z0-9]{20,}'), lambda m: "ghdemo_EXAMPLEtoken00NOTAREAL"),
-    (re.compile(r'\bAKIA[0-9A-Z]{16}\b'),         lambda m: "AKIAEXAMPLE000NOTREAL"),
-    (re.compile(r'\bsk-[A-Za-z0-9]{20,}'),         lambda m: "sk-demoEXAMPLEkey00NOTAREAL"),
+    (re.compile(r'\bAKIA[0-9A-Z]{16}\b'),         lambda m: "AKIA_EXAMPLE_NOT_REAL"),
+    (re.compile(r'\bsk-[A-Za-z0-9]{20,}'),         lambda m: "sk-demo_EXAMPLE_NOT_A_REAL_KEY"),
     (re.compile(r'\bxox[baprs]-[A-Za-z0-9-]{10,}'), lambda m: "xoxdemo-EXAMPLE00NOTAREAL"),
     (re.compile(r'\bAIza[0-9A-Za-z_\-]{35}'),      lambda m: "AIzaDEMOexampleKEY00NOTAREAL"),
     (re.compile(r'-----BEGIN [A-Z ]*PRIVATE KEY'),  lambda m: "-----BEGIN EXAMPLE NOT A KEY"),
 ]
+
+# A replacement must never itself look like a credential, or sanitised components would
+# still trip every scanner (and this file would too). Checked whenever the module loads.
+for _pat, _repl in SECRET_PATS:
+    for _p2, _ in SECRET_PATS:
+        _v = _repl(type("M", (), {"group": lambda self, i=0: "sk"})())
+        assert not _p2.search(_v), "replacement %r matches a credential pattern" % _v
 
 def sanitize(c):
     """Rewrite provider-shaped credential placeholders. Returns what was changed."""
@@ -329,13 +336,14 @@ def check(components, strict=False):
     return [c for c in components if c.get("id") not in problems], problems
 
 
-def load_library(exclude=None):
-    """Every shipped component, from components-src (falling back to components.js)."""
+def load_library(exclude=()):
+    """Every shipped component, from components-src (falling back to components.js).
+    exclude: absolute paths of components-src files to leave out."""
     rows = []
     files = sorted(glob.glob(os.path.join(SRC, "*.json")))
     if files:
         for f in files:
-            if exclude and os.path.abspath(f) == os.path.abspath(exclude): continue
+            if os.path.abspath(f) in exclude: continue
             try:
                 d = json.load(io.open(f, encoding="utf-8"))
             except Exception:
@@ -372,7 +380,11 @@ if __name__ == "__main__":
     # Cross-check against everything already shipped. A duplicate id, a reused
     # @keyframes/@property name, or an id that is a dash-prefix of another (so
     # one component's class names can land on the other's elements) all leak.
-    existing = load_library(exclude=install)
+    # Skip the batch's own file and the install target: re-checking a file that already
+    # lives in components-src must not report it colliding with itself.
+    skip = {os.path.abspath(args[0])}
+    if install: skip.add(os.path.abspath(install))
+    existing = load_library(exclude=skip)
     taken_ids = set(x["id"] for x in existing)
     taken_kf, taken_props = set(), set()
     for x in existing:
