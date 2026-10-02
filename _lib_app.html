@@ -61,8 +61,20 @@
 
   if (!C.length) { out.innerHTML = '<p class="err">components.js is empty — the library has not been generated yet.</p>'; return; }
 
-  /* ---- inject every component stylesheet once ---- */
-  styles.textContent = C.map(function (c) { return "/* " + c.id + " */\n" + c.css; }).join("\n\n");
+  /* ---- component stylesheets, injected on first mount ----
+     Parsing every component's CSS up front means one stylesheet of several
+     megabytes that the browser re-matches on every DOM change. Each component's
+     rules are only needed once it is on screen, so they are added then and kept
+     (removing and re-adding on every scroll would just reparse them). */
+  var styled = {};
+  function ensureStyle(c) {
+    if (styled[c.id]) return;
+    styled[c.id] = true;
+    var el = document.createElement("style");
+    el.setAttribute("data-c", c.id);
+    el.textContent = c.css;
+    styles.parentNode.insertBefore(el, styles);
+  }
 
   /* ---- tiny syntax highlighter (display only) ---- */
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -185,7 +197,7 @@
 
       list.forEach(function (c) {
         var card = document.createElement("div");
-        card.className = "card";
+        card.className = c.span === "full" ? "card span-full" : "card";
         card.innerHTML =
           '<div class="stage"></div>' +
           '<div class="meta"><b></b><small></small></div>' +
@@ -215,10 +227,13 @@
           if (card._mounted) return;
           card._mounted = true;
           try {
+            ensureStyle(c);
             stage.innerHTML = c.html;
             if (c.js.trim()) {
               var rootEl = stage.querySelector("." + c.id) || stage.firstElementChild;
-              if (rootEl) new Function("root", c.js)(rootEl);
+              /* sourceURL names the script in DevTools and in error stacks, so a
+                 failure points at components/<id>.js instead of "anonymous". */
+              if (rootEl) new Function("root", c.js + "\n//# sourceURL=components/" + c.id + ".js")(rootEl);
             }
           } catch (e) {
             stage.innerHTML = '<div class="err">mount failed: ' + esc(e.message) + "</div>";

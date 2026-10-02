@@ -5,8 +5,12 @@
 <title>Component runtime verification</title>
 <style>
   body{margin:0;background:#07080D;color:#F2F4F8;font:13px ui-monospace,Menlo,monospace;padding:16px;}
-  #stageHost{position:absolute;left:-99999px;top:0;width:340px;}
-  .cell{width:340px;min-height:158px;padding:20px;background:#0A0C12;box-sizing:border-box;}
+  /* Cells sit INSIDE the viewport, stacked on top of each other and nearly transparent.
+     Components that pause when off screen (IntersectionObserver) would otherwise never
+     draw, and be reported as empty for doing exactly the right thing. */
+  #stageHost{position:fixed;left:0;top:0;width:1200px;height:0;opacity:.02;pointer-events:none;z-index:-1;}
+  .cell{position:absolute;left:0;top:0;width:340px;min-height:158px;padding:20px;background:#0A0C12;box-sizing:border-box;}
+  .cell.full{width:1180px;padding:18px;}
   #out{white-space:pre-wrap;line-height:1.6;}
   .bad{color:#FF2D6F;} .ok{color:#3BE08A;} .warn{color:#FFC24B;}
 </style>
@@ -15,14 +19,46 @@
 <h1 style="font-size:15px;margin:0 0 12px">Runtime verification</h1>
 <div id="out">loading…</div>
 <div id="stageHost"></div>
+<script>
+/* WebGL canvases discard their drawing buffer after each frame is presented, so
+   reading their pixels afterwards returns nothing. Force preserveDrawingBuffer for
+   every WebGL context created on this page so what was drawn can be sampled. */
+(function () {
+  /* An embedded or background pane reports document.hidden = true, and components that
+     correctly pause in a hidden tab then never draw. Measure them as a visible page. */
+  try {
+    Object.defineProperty(Document.prototype, 'hidden', { configurable: true, get: function () { return false; } });
+    Object.defineProperty(Document.prototype, 'visibilityState', { configurable: true, get: function () { return 'visible'; } });
+  } catch (e) {}
+  var orig = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+    if (/webgl/.test(String(type))) {
+      attrs = Object.assign({}, attrs || {}, { preserveDrawingBuffer: true });
+      this.__webgl = true;
+    }
+    return orig.call(this, type, attrs);
+  };
+})();
+</script>
 <script src="components.js"></script>
 <script>
 /* Mounts every component the way library.html does — same html/css/js strings, same
-   `new Function("root", js)(rootEl)` call — and records what actually happens. Catches
-   the class of failure libcheck.py cannot see: throws at mount, and components that
-   mount cleanly but paint nothing. Batched so hundreds of live rAF loops never run at once. */
+   `new Function("root", js)(rootEl)` call — and records what actually happens:
+     * throws at mount
+     * throws LATER, inside a timer or animation frame (attributed via sourceURL)
+     * mounts cleanly but paints nothing
+     * canvases (2D and WebGL) that draw nothing
+   Batched so hundreds of live loops and WebGL contexts never run at once. */
 (function () {
   var C = window.COMPONENTS || [];
+  /* ?only=fxs-,dbs-funnel verifies just the components whose id starts with any prefix */
+  var only = (/[?&]only=([^&]+)/.exec(location.search) || [])[1];
+  if (only) {
+    var pre = decodeURIComponent(only).split(',');
+    C = C.filter(function (c) { return pre.some(function (p) { return c.id.indexOf(p) === 0; }); });
+  }
+  var host = document.getElementById('stageHost');
+  var out = document.getElementById('out');
 
   /* Embedded/hidden panes freeze requestAnimationFrame entirely — document.hidden is
      true and zero frames are delivered. Any component that paints only inside a rAF
@@ -43,48 +79,88 @@
       next();
     }, 300);
   }
-  var host = document.getElementById('stageHost');
-  var out = document.getElementById('out');
-  var style = document.createElement('style');
-  document.head.appendChild(style);
-  style.textContent = C.map(function (c) { return c.css || ''; }).join('\n');
+
+  /* Errors raised after mount (in a timer, a frame, an observer) carry the
+     sourceURL of the component that threw. */
+  var asyncErr = {};
+  function noteAsync(msg, file) {
+    var m = /components\/([a-z0-9-]+)\.js/.exec(file || '');
+    if (m && !asyncErr[m[1]]) asyncErr[m[1]] = msg;
+  }
+  window.addEventListener('error', function (e) {
+    noteAsync(e.message, e.filename || (e.error && e.error.stack) || '');
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e.reason || {};
+    noteAsync(String(r.message || r), String(r.stack || ''));
+  });
 
   var results = [];
-  var BATCH = 25, SETTLE = 700;
+  var BATCH = 20, SETTLE = 900;
+
+  function canvasLit(cv) {
+    try {
+      var w = cv.width, h = cv.height;
+      if (!w || !h) return 0;
+      var src = cv, g = null;
+      if (cv.__webgl) {
+        var tmp = document.createElement('canvas');
+        tmp.width = w; tmp.height = h;
+        g = tmp.getContext('2d');
+        g.drawImage(cv, 0, 0);
+      } else {
+        g = cv.getContext('2d');
+        if (!g) return -1;
+      }
+      var d = g.getImageData(0, 0, w, h).data, lit = 0;
+      for (var p = 0; p < d.length; p += 4 * 37) {
+        if (d[p + 3] > 8 && (d[p] + d[p + 1] + d[p + 2]) > 6) lit++;
+      }
+      return lit;
+    } catch (e) { return -1; }
+  }
 
   function measure(cell, c) {
-    var r = { id: c.id, cat: c.cat };
+    var r = { id: c.id, cat: c.cat, span: c.span || '' };
     var kids = cell.querySelectorAll('*');
     r.nodes = kids.length;
-    var painted = 0, maxA = 0;
+    var painted = 0;
     for (var i = 0; i < kids.length; i++) {
       var b = kids[i].getBoundingClientRect();
       if (b.width > 1 && b.height > 1) painted++;
-      maxA = Math.max(maxA, b.width * b.height);
     }
     r.painted = painted;
-    r.area = Math.round(maxA);
-    var cv = cell.querySelector('canvas');
-    if (cv) {
-      r.canvas = cv.width + 'x' + cv.height;
-      try {
-        var g = cv.getContext('2d');
-        if (g) {
-          var d = g.getImageData(0, 0, cv.width, cv.height).data, lit = 0;
-          for (var p = 3; p < d.length; p += 4 * 37) if (d[p] > 8) lit++;
-          r.canvasLit = lit;
-        } else { r.canvasLit = -1; } /* webgl — not sampled here */
-      } catch (e) { r.canvasLit = -1; }
+    var rootEl = cell.querySelector('.' + c.id) || cell.firstElementChild;
+    if (rootEl) {
+      var rb = rootEl.getBoundingClientRect();
+      r.w = Math.round(rb.width); r.h = Math.round(rb.height);
+      /* a component wider than the cell it was given is overflowing its layout */
+      r.overflowX = rootEl.scrollWidth > rootEl.clientWidth + 2 &&
+                    getComputedStyle(rootEl).overflowX === 'visible';
+    }
+    var cvs = cell.querySelectorAll('canvas');
+    if (cvs.length) {
+      r.canvases = cvs.length;
+      r.webgl = Array.prototype.some.call(cvs, function (x) { return x.__webgl; });
+      var best = 0, any = false;
+      Array.prototype.forEach.call(cvs, function (cv) {
+        var l = canvasLit(cv);
+        if (l >= 0) { any = true; best = Math.max(best, l); }
+      });
+      r.canvasLit = any ? best : -1;
     }
     return r;
   }
 
   function runBatch(start, done) {
     var slice = C.slice(start, start + BATCH);
+    var style = document.createElement('style');
+    style.textContent = slice.map(function (c) { return c.css || ''; }).join('\n');
+    document.head.appendChild(style);
     var cells = [];
     slice.forEach(function (c) {
       var cell = document.createElement('div');
-      cell.className = 'cell';
+      cell.className = c.span === 'full' ? 'cell full' : 'cell';
       host.appendChild(cell);           /* attach BEFORE mount — detached nodes have no layout */
       var rec = { c: c, cell: cell, err: null };
       try {
@@ -92,7 +168,7 @@
         if ((c.js || '').trim()) {
           var rootEl = cell.querySelector('.' + c.id) || cell.firstElementChild;
           if (!rootEl) throw new Error('no root element matching .' + c.id);
-          new Function('root', c.js)(rootEl);
+          new Function('root', c.js + '\n//# sourceURL=components/' + c.id + '.js')(rootEl);
         }
       } catch (e) {
         rec.err = (e && e.message) || String(e);
@@ -107,37 +183,51 @@
         results.push(r);
         rec.cell.remove();
       });
+      style.remove();
       out.textContent = 'verified ' + results.length + ' / ' + C.length + ' …';
-      if (start + BATCH < C.length) setTimeout(function () { runBatch(start + BATCH, done); }, 30);
-      else done();
+      if (start + BATCH < C.length) setTimeout(function () { runBatch(start + BATCH, done); }, 60);
+      else setTimeout(done, 400);   /* let any last async errors land */
     }, SETTLE);
   }
 
   installShimIfFrozen(function () { runBatch(0, function () {
+    results.forEach(function (r) { if (!r.error && asyncErr[r.id]) r.asyncError = asyncErr[r.id]; });
     var errs  = results.filter(function (r) { return r.error; });
+    var aerrs = results.filter(function (r) { return r.asyncError; });
     var blank = results.filter(function (r) { return !r.error && r.painted === 0; });
     var dark  = results.filter(function (r) { return !r.error && r.canvasLit === 0; });
+    var over  = results.filter(function (r) { return r.overflowX; });
     var sum = {
       total: results.length,
       errors: errs.length,
+      asyncErrors: aerrs.length,
       blank: blank.length,
       darkCanvas: dark.length,
+      overflowing: over.length,
+      webglComponents: results.filter(function (r) { return r.webgl; }).length,
+      fullSpan: results.filter(function (r) { return r.span === 'full'; }).length,
+      rafMode: rafMode,
       errorList: errs.map(function (r) { return r.id + ' :: ' + r.error; }),
+      asyncErrorList: aerrs.map(function (r) { return r.id + ' :: ' + r.asyncError; }),
       blankList: blank.map(function (r) { return r.id; }),
-      darkList: dark.map(function (r) { return r.id; })
+      darkList: dark.map(function (r) { return r.id; }),
+      overflowList: over.map(function (r) { return r.id + ' (' + r.w + 'px)'; })
     };
-    sum.rafMode = rafMode;
     window.__VERIFY__ = { summary: sum, results: results };
+    function line(n, label, cls) { return '<span class="' + (n ? cls : 'ok') + '">' + label + ': ' + n + '</span>\n'; }
+    function list(t, a) { return a.length ? t + '\n  ' + a.join('\n  ') + '\n\n' : ''; }
     out.innerHTML =
-      '<b>' + sum.total + '</b> components mounted\n' +
-      'animation clock: ' + rafMode + '\n' +
-      '<span class="' + (sum.errors ? 'bad' : 'ok') + '">errors: ' + sum.errors + '</span>\n' +
-      '<span class="' + (sum.blank ? 'warn' : 'ok') + '">blank (nothing painted): ' + sum.blank + '</span>\n' +
-      '<span class="' + (sum.darkCanvas ? 'warn' : 'ok') + '">canvas drawing nothing: ' + sum.darkCanvas + '</span>\n\n' +
-      (sum.errorList.length ? 'ERRORS\n  ' + sum.errorList.join('\n  ') + '\n\n' : '') +
-      (sum.blankList.length ? 'BLANK\n  ' + sum.blankList.join('\n  ') + '\n\n' : '') +
-      (sum.darkList.length  ? 'DARK CANVAS\n  ' + sum.darkList.join('\n  ') + '\n' : '');
-    document.title = 'DONE ' + sum.errors + 'e/' + sum.blank + 'b';
+      '<b>' + sum.total + '</b> components mounted (' + sum.fullSpan + ' full-span, ' +
+      sum.webglComponents + ' WebGL)\nanimation clock: ' + rafMode + '\n' +
+      line(sum.errors, 'errors at mount', 'bad') +
+      line(sum.asyncErrors, 'errors after mount', 'bad') +
+      line(sum.blank, 'blank (nothing painted)', 'warn') +
+      line(sum.darkCanvas, 'canvas drawing nothing', 'warn') +
+      line(sum.overflowing, 'overflowing their width', 'warn') + '\n' +
+      list('ERRORS AT MOUNT', sum.errorList) + list('ERRORS AFTER MOUNT', sum.asyncErrorList) +
+      list('BLANK', sum.blankList) + list('DARK CANVAS', sum.darkList) +
+      list('OVERFLOWING', sum.overflowList);
+    document.title = 'DONE ' + sum.errors + 'e/' + sum.asyncErrors + 'a/' + sum.blank + 'b';
   }); });
 })();
 </script>

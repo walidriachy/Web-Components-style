@@ -92,34 +92,56 @@ Tailwind config or JSON.
 
 ## Building
 
-Source lives in the `_`-prefixed partials; the pages are generated from them.
+Components live in **`components-src/`** — one JSON array per category, built in filename
+order. That folder is the source of truth; `components.js` and `library.html` are generated
+from it, so a fresh clone can always rebuild the library.
 
 ```sh
-./build-db.sh        # rebuilds database.html and index.html
-python3 build-lib.py # rebuilds components.js and library.html
+python3 build-lib.py # components-src/ → components.js and library.html
+./build-db.sh        # rebuilds database.html and index.html from the _-prefixed partials
 ```
 
-`build-lib.py` validates every component through `libcheck.py` before it ships and rejects
-anything that fails: unscoped selectors, colliding `@keyframes`, JS syntax errors, disallowed
-capabilities, or a proven runtime failure. Rejections are printed with their reason rather
-than shipped broken.
-
-Two further rules apply to newly written components. Every `@keyframes` name must start with
-the component id, since all components share one stylesheet and an unprefixed name would
-silently hijack another component's animation. And any `requestAnimationFrame` or
-`setInterval` loop must check `root.isConnected`, because the library unmounts by clearing
-`innerHTML` and cannot otherwise stop a running loop.
-
-To check a batch before merging it:
+To add components, write a JSON array of them and install it. `libcheck.py` validates the
+batch and writes the destination file only if every component passes:
 
 ```sh
-python3 libcheck.py mybatch.json
+python3 libcheck.py mybatch.json --install components-src/2000-my-category.json
+python3 build-lib.py
 ```
 
-Open `verify-runtime.html` to mount every component and report throws, blank renders and
-canvases that draw nothing. In an embedded view that freezes `requestAnimationFrame` it
-substitutes a timer-driven clock, so rAF-driven canvases are measured rather than
-mis-reported as empty.
+A component that takes a whole row — a dashboard, an app shell, a page section — sets
+`"span": "full"`.
+
+### What is checked
+
+`build-lib.py` validates everything through `libcheck.py` and rejects, with the reason
+printed, anything that fails:
+
+- **Scoping** — every selector must mention the component's class, or be nested inside a rule
+  that does. CSS is walked with a brace stack the way a browser parses it, so minified
+  rules, native CSS nesting, `@container` and `@starting-style` are all checked correctly.
+- **Global names** — `@keyframes` and `@property` registrations are document-wide, so a
+  name used by two components is rejected.
+- **Capabilities** — no network, storage, `eval`, cookies, navigation, nested scripts or
+  frames, external resources or web fonts.
+- **Syntax** — every component's JS is parsed by Node.
+
+New batches must also pass stricter rules the older library predates: `@keyframes`,
+`@property` and `view-transition-name` prefixed with the id; animation loops that stop
+themselves once unmounted; WebGL contexts released on unmount (browsers keep about 16);
+window/document listeners removed; no `position: fixed`, viewport units or top-layer APIs
+(they escape the component — container queries and `cqi` units instead); full-row components
+must respond to their container; and no string shaped like a real API key, since secret
+scanners would block anyone who copies the component.
+
+Open `verify-runtime.html` to mount every component and report errors thrown at mount and
+**after** mount (inside timers and animation frames, attributed to the component that threw),
+blank renders, 2D and WebGL canvases that draw nothing, and components overflowing their
+width. Full-row components are measured at full width. In an embedded view that freezes
+`requestAnimationFrame` it substitutes a timer-driven clock.
+
+In the library, a component's CSS is injected the first time it scrolls into view, and its
+script is tagged with a `sourceURL`, so DevTools and error stacks show `components/<id>.js`.
 
 ## Notes
 

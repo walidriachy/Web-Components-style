@@ -130,6 +130,16 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
 .side nav .famgrp.open .famsub{display:flex;}
 .side nav .catlink{font-size:12px;padding:6px 9px;}
 
+/* Full-row components: dashboards, app shells and page sections. They span the
+   whole grid row and get a block-level stage so their root can be 100% wide and
+   lay itself out with container queries. grid-column 1/-1 (not span N) never
+   creates implicit columns, so it is safe at every width. */
+.card.span-full{grid-column:1/-1;}
+.card.span-full .stage{display:block;padding:18px;min-height:240px;}
+.card.span-full .stage > *{width:100%;}
+.card.span-full .meta{flex-direction:row;align-items:baseline;gap:14px;flex-wrap:wrap;}
+.card.span-full .meta small{max-width:90ch;}
+
 /* Stacked layout: a 45-item vertical sidebar would push every component
    almost 1800px down the page. Collapse it to a horizontal scrolling
    strip so the first component stays near the top of the screen. */
