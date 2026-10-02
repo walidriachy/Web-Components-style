@@ -13,6 +13,7 @@
   --ink:#F2F4F8; --dim:#8A94A6; --faint:#525C6E;
   --cy:#38F2E4; --hot:#FF2D6F; --vi:#8B5CF6; --gold:#FFC24B; --ok:#3BE08A;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --navh:48px;   /* height of the page-switcher header; everything sticky sits below it */
   --disp:"Anton","Arial Black",sans-serif;
   --body:"Space Grotesk",system-ui,sans-serif;
 }
@@ -24,8 +25,8 @@ a{color:inherit;}
 .lay{display:grid;grid-template-columns:224px 1fr;min-height:100vh;}
 
 .side{
-  position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--line);
-  padding:64px 14px 30px;background:var(--panel);
+  position:sticky;top:var(--navh);height:calc(100vh - var(--navh));overflow-y:auto;border-right:1px solid var(--line);
+  padding:22px 14px 30px;background:var(--panel);
 }
 .side h1{font-family:var(--disp);font-size:19px;text-transform:uppercase;margin:0 0 4px;letter-spacing:.01em;}
 .side .cnt{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px;display:block;}
@@ -39,9 +40,9 @@ a{color:inherit;}
 .side nav button i{font-style:normal;font-family:var(--mono);font-size:10px;opacity:.7;}
 .side .tools{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;}
 
-.main{padding:64px 26px 100px;min-width:0;}
+.main{padding:0 26px 100px;min-width:0;}
 .bar{
-  position:sticky;top:0;z-index:30;margin:-64px -26px 22px;padding:14px 26px;
+  position:sticky;top:var(--navh);z-index:30;margin:0 -26px 22px;padding:14px 26px;
   background:rgba(7,8,13,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line);display:flex;gap:9px;align-items:center;flex-wrap:wrap;
 }
@@ -140,21 +141,48 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
 .card.span-full .meta{flex-direction:row;align-items:baseline;gap:14px;flex-wrap:wrap;}
 .card.span-full .meta small{max-width:90ch;}
 
+/* Likes. The heart sits in each card's title row, never over the live preview. */
+.meta .mhead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.like{
+  flex:0 0 auto;width:30px;height:30px;margin:-5px -6px 0 0;display:grid;place-items:center;
+  border-radius:50%;border:1px solid transparent;background:transparent;cursor:pointer;
+  color:var(--faint);transition:color .16s,background .16s,border-color .16s;
+}
+.like svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;}
+.like:hover{color:var(--hot);background:rgba(255,45,111,.08);}
+.like:focus-visible{outline:2px solid var(--hot);outline-offset:1px;}
+.like[aria-pressed="true"]{color:var(--hot);background:rgba(255,45,111,.12);border-color:rgba(255,45,111,.28);}
+.like[aria-pressed="true"] svg{fill:currentColor;}
+.like.pop svg{animation:likepop .42s cubic-bezier(.3,1.6,.5,1);}
+@keyframes likepop{0%{transform:scale(.6)}55%{transform:scale(1.35)}100%{transform:scale(1)}}
+.card.liked{border-color:rgba(255,45,111,.3);}
+.side nav .likedlink i{transition:color .16s;}
+.side nav .likedlink.has i{color:var(--hot);opacity:1;}
+.side nav .likedlink[aria-current="true"] i{color:inherit;}
+.likes-panel{
+  margin:4px 0 24px;padding:16px 18px;border:1px solid rgba(255,45,111,.25);border-radius:13px;
+  background:linear-gradient(120deg,rgba(255,45,111,.07),transparent 60%),var(--panel);
+  display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;justify-content:space-between;
+}
+.likes-panel h3{margin:0 0 4px;font-family:var(--disp);font-size:20px;text-transform:uppercase;font-weight:400;letter-spacing:.01em;}
+.likes-panel p{margin:0;color:var(--dim);max-width:68ch;font-size:13.5px;line-height:1.55;}
+.likes-acts{display:flex;gap:8px;flex-wrap:wrap;}
+.likes-acts .btn.warn{border-color:var(--hot);color:var(--hot);}
+
 /* Stacked layout: a 45-item vertical sidebar would push every component
    almost 1800px down the page. Collapse it to a horizontal scrolling
    strip so the first component stays near the top of the screen. */
 @media (max-width:900px){
   .lay{grid-template-columns:1fr;}
-  .side{position:static;height:auto;padding:54px 12px 10px;border-right:0;border-bottom:1px solid var(--line);}
+  .side{position:static;height:auto;padding:14px 12px 10px;border-right:0;border-bottom:1px solid var(--line);}
   .side h1{display:inline-block;margin:0 8px 6px 0;font-size:15px;}
   .side .cnt{display:inline-block;margin:0 0 6px;}
-  .side nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:5px;padding-bottom:6px;-webkit-overflow-scrolling:touch;}
+  .side nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:5px;padding-bottom:6px;-webkit-overflow-scrolling:touch;
+            scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent;}
   .side nav button{flex:0 0 auto;white-space:nowrap;padding:7px 10px;}
   .side nav button i{margin-left:6px;}
   .side .tools{flex-direction:row;margin-top:8px;padding-top:8px;}
   .side .tools .btn{flex:1;text-align:center;}
-  .main{padding-top:18px;}
-  .bar{margin-top:-18px;}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
@@ -162,11 +190,17 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
 <body>
 <style id="compStyles"></style>
 <style>
-.xnav{position:fixed;left:12px;top:12px;z-index:400;display:flex;gap:4px;align-items:center;
- background:rgba(10,12,18,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
- border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:5px;
+/* A full-width header row, sticky at the top. It used to float (position:fixed) over the
+   top-left corner, and being wider than the sidebar it covered the search bar. Now it
+   takes its own row and everything sticky sits below it (see --navh in the shell). */
+.xnav{position:sticky;top:0;z-index:400;display:flex;gap:4px;align-items:center;
+ height:var(--navh,48px);box-sizing:border-box;padding:0 12px;overflow-x:auto;scrollbar-width:none;
+ background:rgba(10,12,18,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ border-bottom:1px solid rgba(255,255,255,.1);
  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;}
-.xnav a{color:#8A94A6;text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap;}
+.xnav::-webkit-scrollbar{display:none;}
+.xnav a{color:#8A94A6;text-decoration:none;padding:7px 11px;border-radius:6px;white-space:nowrap;flex:0 0 auto;}
+.xnav a:focus-visible{outline:2px solid #38F2E4;outline-offset:1px;}
 .xnav a:hover{background:rgba(255,255,255,.09);color:#F2F4F8;}
 .xnav a[aria-current="page"]{background:#38F2E4;color:#04231F;}
 </style>
@@ -216,6 +250,20 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
   var out = $("out"), styles = $("compStyles"), toast = $("toast");
   var activeCat = "All", term = "";
 
+  /* ---- likes ----
+     Kept in this browser's localStorage under one key. Component ids never change, so
+     likes survive the library being rebuilt or growing. If storage is unavailable
+     (private window, blocked site data) everything still works; likes then last until
+     the page is reloaded. */
+  var LIKES_KEY = "wcs-liked-v1";
+  var liked = (function () {
+    try { var a = JSON.parse(localStorage.getItem(LIKES_KEY) || "[]"); return new Set(Array.isArray(a) ? a : []); }
+    catch (e) { return new Set(); }
+  })();
+  var likedCountEl = null, likesPanel = null;
+  function saveLikes() { try { localStorage.setItem(LIKES_KEY, JSON.stringify(Array.from(liked))); } catch (e) {} }
+  function likedList() { return C.filter(function (c) { return liked.has(c.id); }); }
+
   /* Categories are grouped into families for the sidebar. A category written
      "Motion · Cards" belongs to family "Motion"; everything else is mapped
      explicitly below. activeCat holds "All", an exact category name, or
@@ -234,7 +282,7 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
     return i > 0 ? cat.slice(0, i) : (FAMILY[cat] || "Interface");
   }
   function catVisible(cat) {
-    if (activeCat === "All") return true;
+    if (activeCat === "All" || activeCat === "liked") return true;
     if (activeCat.indexOf("fam:") === 0) return famOf(cat) === activeCat.slice(4);
     return activeCat === cat;
   }
@@ -375,11 +423,14 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
     var cats = [], seen = {};
     C.forEach(function (c) { if (!seen[c.cat]) { seen[c.cat] = 1; cats.push(c.cat); } });
     var shown = 0;
+    likesPanel = null;
+    if (activeCat === "liked") { likesPanel = buildLikesPanel(); out.appendChild(likesPanel); }
 
     cats.forEach(function (cat) {
       if (!catVisible(cat)) return;
       var list = C.filter(function (c) {
         if (c.cat !== cat) return false;
+        if (activeCat === "liked" && !liked.has(c.id)) return false;
         if (!term) return true;
         return (c.id + " " + c.name + " " + c.cat + " " + c.tags + " " + c.note).toLowerCase().indexOf(term) !== -1;
       });
@@ -405,7 +456,10 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
         card.className = c.span === "full" ? "card span-full" : "card";
         card.innerHTML =
           '<div class="stage"></div>' +
-          '<div class="meta"><b></b><small></small></div>' +
+          '<div class="meta"><div class="mhead"><b></b>' +
+            '<button class="like" type="button" aria-pressed="false">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.6-4.6-9.2-9.4C1.6 7.3 3.9 4 7.3 4c2 0 3.6 1.1 4.7 2.7C13.1 5.1 14.7 4 16.7 4c3.4 0 5.7 3.3 4.5 6.9-1.6 4.8-9.2 9.4-9.2 9.4z"/></svg>' +
+            '</button></div><small></small></div>' +
           '<div class="acts">' +
             '<button class="btn pri" data-a="ai">Copy for AI</button>' +
             '<button class="btn" data-a="all">Copy all</button>' +
@@ -422,6 +476,23 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
 
         card.querySelector(".meta b").textContent = c.name;
         card.querySelector(".meta small").textContent = c.note;
+
+        var likeBtn = card.querySelector(".like");
+        function paintLike() {
+          var on = liked.has(c.id);
+          likeBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          likeBtn.setAttribute("aria-label", (on ? "Unlike " : "Like ") + c.name);
+          likeBtn.title = on ? "Liked \u2014 click to remove" : "Like this component";
+          card.classList.toggle("liked", on);
+        }
+        paintLike();
+        likeBtn.addEventListener("click", function () {
+          var on = !liked.has(c.id);
+          if (on) liked.add(c.id); else liked.delete(c.id);
+          saveLikes(); paintLike(); likesChanged();
+          if (on) { likeBtn.classList.remove("pop"); void likeBtn.offsetWidth; likeBtn.classList.add("pop"); }
+          say(on ? "Liked \u00b7 " + likedList().length + " in your likes" : "Removed from your likes");
+        });
 
         /* Attach BEFORE mounting. A detached element has no layout, so any
            component that measures itself on init sees zeroes and either
@@ -494,7 +565,65 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
        until the next scroll event. */
     setTimeout(sweep, 160);
     $("shown").textContent = shown + " of " + C.length;
-    $("empty").style.display = shown ? "none" : "block";
+    /* in the liked view with nothing liked, the panel explains instead */
+    $("empty").style.display = shown || (activeCat === "liked" && !term) ? "none" : "block";
+  }
+
+  function likesChanged() {
+    var n = likedList().length;
+    if (likedCountEl) likedCountEl.textContent = n;
+    if (likedCountEl) likedCountEl.parentNode.classList.toggle("has", n > 0);
+    if (likesPanel) {
+      var fresh = buildLikesPanel();
+      likesPanel.replaceWith(fresh);
+      likesPanel = fresh;
+    }
+  }
+  function buildLikesPanel() {
+    var list = likedList(), n = list.length;
+    var p = document.createElement("section");
+    p.className = "likes-panel";
+    if (!n) {
+      p.innerHTML = '<div><h3>Nothing liked yet</h3><p>Press the heart on any component you like and it collects here. ' +
+        'Then copy them all at once for another AI session as your style reference, or copy a request ' +
+        'for more components in the same spirit.</p></div>';
+      return p;
+    }
+    p.innerHTML = '<div><h3></h3><p>Your likes are saved in this browser. Copy them as one style reference for ' +
+      'another AI session, or copy a request to build more components like them.</p></div>' +
+      '<div class="likes-acts">' +
+        '<button class="btn pri" data-l="ai">Copy liked for AI</button>' +
+        '<button class="btn" data-l="more">Ask for more like these</button>' +
+        '<button class="btn" data-l="clear">Clear likes</button>' +
+      '</div>';
+    p.querySelector("h3").textContent = n + (n === 1 ? " liked component" : " liked components");
+    p.querySelector('[data-l="ai"]').addEventListener("click", function () {
+      copy("These are UI components I like. Treat them together as the style reference for what you " +
+        "build for me: match their visual language, typography, spacing, colour, motion, interaction " +
+        "details and code conventions. Each one is complete and self-contained.\n\n" +
+        list.map(forAI).join("\n\n\u2014\u2014\u2014\n\n"), "Copied " + n + " liked components for AI");
+    });
+    p.querySelector('[data-l="more"]').addEventListener("click", function () {
+      copy("These are the components I like most from my component library. Please create new components " +
+        "in the same spirit \u2014 fresh ideas, the same quality bar and conventions \u2014 and tell me which " +
+        "ones each new component riffs on.\n\n" +
+        list.map(function (c) { return "- " + c.name + " \u2014 " + c.cat + " (id: " + c.id + ")\n  " + c.note; }).join("\n"),
+        "Copied a request for more like these " + n);
+    });
+    var clear = p.querySelector('[data-l="clear"]'), armed = null;
+    clear.addEventListener("click", function () {
+      if (!armed) {
+        clear.textContent = "Click again to clear " + n;
+        clear.classList.add("warn");
+        armed = setTimeout(function () { armed = null; clear.textContent = "Clear likes"; clear.classList.remove("warn"); }, 3500);
+        return;
+      }
+      clearTimeout(armed);
+      liked.clear(); saveLikes();
+      say("Cleared your likes");
+      likesChanged(); render();
+    });
+    return p;
   }
 
   /* ---- sidebar ----
@@ -539,6 +668,12 @@ pre .k{color:var(--vi);} pre .c{color:var(--faint);font-style:italic;}
     all.setAttribute("aria-current", "true");
     all.addEventListener("click", function () { activeCat = "All"; setActive(all); });
     nav.appendChild(all);
+
+    var likedBtn = mkBtn("\u2665 Liked", likedList().length, "famlink likedlink");
+    likedBtn.addEventListener("click", function () { activeCat = "liked"; setActive(likedBtn); });
+    nav.appendChild(likedBtn);
+    likedCountEl = likedBtn.querySelector("i");
+    likedBtn.classList.toggle("has", likedList().length > 0);
 
     fams.forEach(function (f) {
       var cats = byFam[f].slice().sort();

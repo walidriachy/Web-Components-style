@@ -1,9 +1,15 @@
 <style>
-.xnav{position:fixed;left:12px;top:12px;z-index:400;display:flex;gap:4px;align-items:center;
- background:rgba(10,12,18,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
- border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:5px;
+/* A full-width header row, sticky at the top. It used to float (position:fixed) over the
+   top-left corner, and being wider than the sidebar it covered the search bar. Now it
+   takes its own row and everything sticky sits below it (see --navh in the shell). */
+.xnav{position:sticky;top:0;z-index:400;display:flex;gap:4px;align-items:center;
+ height:var(--navh,48px);box-sizing:border-box;padding:0 12px;overflow-x:auto;scrollbar-width:none;
+ background:rgba(10,12,18,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ border-bottom:1px solid rgba(255,255,255,.1);
  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;}
-.xnav a{color:#8A94A6;text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap;}
+.xnav::-webkit-scrollbar{display:none;}
+.xnav a{color:#8A94A6;text-decoration:none;padding:7px 11px;border-radius:6px;white-space:nowrap;flex:0 0 auto;}
+.xnav a:focus-visible{outline:2px solid #38F2E4;outline-offset:1px;}
 .xnav a:hover{background:rgba(255,255,255,.09);color:#F2F4F8;}
 .xnav a[aria-current="page"]{background:#38F2E4;color:#04231F;}
 </style>

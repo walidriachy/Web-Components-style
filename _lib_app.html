@@ -36,6 +36,20 @@
   var out = $("out"), styles = $("compStyles"), toast = $("toast");
   var activeCat = "All", term = "";
 
+  /* ---- likes ----
+     Kept in this browser's localStorage under one key. Component ids never change, so
+     likes survive the library being rebuilt or growing. If storage is unavailable
+     (private window, blocked site data) everything still works; likes then last until
+     the page is reloaded. */
+  var LIKES_KEY = "wcs-liked-v1";
+  var liked = (function () {
+    try { var a = JSON.parse(localStorage.getItem(LIKES_KEY) || "[]"); return new Set(Array.isArray(a) ? a : []); }
+    catch (e) { return new Set(); }
+  })();
+  var likedCountEl = null, likesPanel = null;
+  function saveLikes() { try { localStorage.setItem(LIKES_KEY, JSON.stringify(Array.from(liked))); } catch (e) {} }
+  function likedList() { return C.filter(function (c) { return liked.has(c.id); }); }
+
   /* Categories are grouped into families for the sidebar. A category written
      "Motion · Cards" belongs to family "Motion"; everything else is mapped
      explicitly below. activeCat holds "All", an exact category name, or
@@ -54,7 +68,7 @@
     return i > 0 ? cat.slice(0, i) : (FAMILY[cat] || "Interface");
   }
   function catVisible(cat) {
-    if (activeCat === "All") return true;
+    if (activeCat === "All" || activeCat === "liked") return true;
     if (activeCat.indexOf("fam:") === 0) return famOf(cat) === activeCat.slice(4);
     return activeCat === cat;
   }
@@ -195,11 +209,14 @@
     var cats = [], seen = {};
     C.forEach(function (c) { if (!seen[c.cat]) { seen[c.cat] = 1; cats.push(c.cat); } });
     var shown = 0;
+    likesPanel = null;
+    if (activeCat === "liked") { likesPanel = buildLikesPanel(); out.appendChild(likesPanel); }
 
     cats.forEach(function (cat) {
       if (!catVisible(cat)) return;
       var list = C.filter(function (c) {
         if (c.cat !== cat) return false;
+        if (activeCat === "liked" && !liked.has(c.id)) return false;
         if (!term) return true;
         return (c.id + " " + c.name + " " + c.cat + " " + c.tags + " " + c.note).toLowerCase().indexOf(term) !== -1;
       });
@@ -225,7 +242,10 @@
         card.className = c.span === "full" ? "card span-full" : "card";
         card.innerHTML =
           '<div class="stage"></div>' +
-          '<div class="meta"><b></b><small></small></div>' +
+          '<div class="meta"><div class="mhead"><b></b>' +
+            '<button class="like" type="button" aria-pressed="false">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.6-4.6-9.2-9.4C1.6 7.3 3.9 4 7.3 4c2 0 3.6 1.1 4.7 2.7C13.1 5.1 14.7 4 16.7 4c3.4 0 5.7 3.3 4.5 6.9-1.6 4.8-9.2 9.4-9.2 9.4z"/></svg>' +
+            '</button></div><small></small></div>' +
           '<div class="acts">' +
             '<button class="btn pri" data-a="ai">Copy for AI</button>' +
             '<button class="btn" data-a="all">Copy all</button>' +
@@ -242,6 +262,23 @@
 
         card.querySelector(".meta b").textContent = c.name;
         card.querySelector(".meta small").textContent = c.note;
+
+        var likeBtn = card.querySelector(".like");
+        function paintLike() {
+          var on = liked.has(c.id);
+          likeBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          likeBtn.setAttribute("aria-label", (on ? "Unlike " : "Like ") + c.name);
+          likeBtn.title = on ? "Liked \u2014 click to remove" : "Like this component";
+          card.classList.toggle("liked", on);
+        }
+        paintLike();
+        likeBtn.addEventListener("click", function () {
+          var on = !liked.has(c.id);
+          if (on) liked.add(c.id); else liked.delete(c.id);
+          saveLikes(); paintLike(); likesChanged();
+          if (on) { likeBtn.classList.remove("pop"); void likeBtn.offsetWidth; likeBtn.classList.add("pop"); }
+          say(on ? "Liked \u00b7 " + likedList().length + " in your likes" : "Removed from your likes");
+        });
 
         /* Attach BEFORE mounting. A detached element has no layout, so any
            component that measures itself on init sees zeroes and either
@@ -314,7 +351,65 @@
        until the next scroll event. */
     setTimeout(sweep, 160);
     $("shown").textContent = shown + " of " + C.length;
-    $("empty").style.display = shown ? "none" : "block";
+    /* in the liked view with nothing liked, the panel explains instead */
+    $("empty").style.display = shown || (activeCat === "liked" && !term) ? "none" : "block";
+  }
+
+  function likesChanged() {
+    var n = likedList().length;
+    if (likedCountEl) likedCountEl.textContent = n;
+    if (likedCountEl) likedCountEl.parentNode.classList.toggle("has", n > 0);
+    if (likesPanel) {
+      var fresh = buildLikesPanel();
+      likesPanel.replaceWith(fresh);
+      likesPanel = fresh;
+    }
+  }
+  function buildLikesPanel() {
+    var list = likedList(), n = list.length;
+    var p = document.createElement("section");
+    p.className = "likes-panel";
+    if (!n) {
+      p.innerHTML = '<div><h3>Nothing liked yet</h3><p>Press the heart on any component you like and it collects here. ' +
+        'Then copy them all at once for another AI session as your style reference, or copy a request ' +
+        'for more components in the same spirit.</p></div>';
+      return p;
+    }
+    p.innerHTML = '<div><h3></h3><p>Your likes are saved in this browser. Copy them as one style reference for ' +
+      'another AI session, or copy a request to build more components like them.</p></div>' +
+      '<div class="likes-acts">' +
+        '<button class="btn pri" data-l="ai">Copy liked for AI</button>' +
+        '<button class="btn" data-l="more">Ask for more like these</button>' +
+        '<button class="btn" data-l="clear">Clear likes</button>' +
+      '</div>';
+    p.querySelector("h3").textContent = n + (n === 1 ? " liked component" : " liked components");
+    p.querySelector('[data-l="ai"]').addEventListener("click", function () {
+      copy("These are UI components I like. Treat them together as the style reference for what you " +
+        "build for me: match their visual language, typography, spacing, colour, motion, interaction " +
+        "details and code conventions. Each one is complete and self-contained.\n\n" +
+        list.map(forAI).join("\n\n\u2014\u2014\u2014\n\n"), "Copied " + n + " liked components for AI");
+    });
+    p.querySelector('[data-l="more"]').addEventListener("click", function () {
+      copy("These are the components I like most from my component library. Please create new components " +
+        "in the same spirit \u2014 fresh ideas, the same quality bar and conventions \u2014 and tell me which " +
+        "ones each new component riffs on.\n\n" +
+        list.map(function (c) { return "- " + c.name + " \u2014 " + c.cat + " (id: " + c.id + ")\n  " + c.note; }).join("\n"),
+        "Copied a request for more like these " + n);
+    });
+    var clear = p.querySelector('[data-l="clear"]'), armed = null;
+    clear.addEventListener("click", function () {
+      if (!armed) {
+        clear.textContent = "Click again to clear " + n;
+        clear.classList.add("warn");
+        armed = setTimeout(function () { armed = null; clear.textContent = "Clear likes"; clear.classList.remove("warn"); }, 3500);
+        return;
+      }
+      clearTimeout(armed);
+      liked.clear(); saveLikes();
+      say("Cleared your likes");
+      likesChanged(); render();
+    });
+    return p;
   }
 
   /* ---- sidebar ----
@@ -359,6 +454,12 @@
     all.setAttribute("aria-current", "true");
     all.addEventListener("click", function () { activeCat = "All"; setActive(all); });
     nav.appendChild(all);
+
+    var likedBtn = mkBtn("\u2665 Liked", likedList().length, "famlink likedlink");
+    likedBtn.addEventListener("click", function () { activeCat = "liked"; setActive(likedBtn); });
+    nav.appendChild(likedBtn);
+    likedCountEl = likedBtn.querySelector("i");
+    likedBtn.classList.toggle("has", likedList().length > 0);
 
     fams.forEach(function (f) {
       var cats = byFam[f].slice().sort();

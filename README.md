@@ -37,6 +37,20 @@ Each one is:
 *Copy for AI* wraps a component with instructions, ready to paste into another AI session to
 show it exactly the style you want. There is also *Copy category* and *Copy whole library*.
 
+### Likes
+
+Press the ♥ on any card to like it. Liked components collect under **♥ Liked** at the top of
+the sidebar, and that view can:
+
+- **Copy liked for AI** — every liked component with its full code, framed as one style
+  reference for another AI session
+- **Ask for more like these** — a short request listing the liked components (name, category,
+  id and technique), ready to paste so new components can be generated in the same spirit
+- **Clear likes** — two clicks, so it cannot happen by accident
+
+Likes are saved in your browser (`localStorage`) and keyed by component id, which never
+changes, so they survive reloads and the library growing.
+
 ### Coverage
 
 - **App templates — 192** across 24 kinds, each a full-row, fully interactive app shell: Admin & CMS, Auth Pages, Booking & Events, Calendar, Chat, Creative Tools, Developer Tools, Editor, Files, Fitness & Habits, HR & People, Kanban, Learning, Mail, Media, Mobility & Delivery, Notes & Tasks, Personal Finance, Point of Sale, Real Estate, Restaurant, Smart Home, Storefront, Travel
