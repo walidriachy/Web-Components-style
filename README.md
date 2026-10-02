@@ -9,7 +9,6 @@ No build step, no dependencies, no framework. Open the HTML files directly.
 | **`database.html`** | **580 design languages** applied to a live 60-component interface |
 | **`extreme.html`** | 21 motion studies and 44 interactive components, hand-written canvas and WebGL |
 | **`scroll-lab.html`** | 9 scroll-driven animation techniques with their source alongside |
-| **`index.html`** | The earlier design atlas — superseded by `database.html` |
 
 ## Run it
 
@@ -105,7 +104,7 @@ from it, so a fresh clone can always rebuild the library.
 
 ```sh
 python3 build-lib.py # components-src/ → components.js and library.html
-./build-db.sh        # rebuilds database.html and index.html from the _-prefixed partials
+./build-db.sh        # rebuilds database.html from the _-prefixed partials
 ```
 
 To add components, write a JSON array of them and install it. `libcheck.py` validates the
