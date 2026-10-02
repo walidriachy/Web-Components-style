@@ -10,3 +10,6 @@
 # python build artefacts
 __pycache__/
 *.pyc
+
+# work-in-progress batches from generation agents
+tools/_tmp/
