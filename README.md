@@ -5,7 +5,7 @@ No build step, no dependencies, no framework. Open the HTML files directly.
 
 | Page | What it is |
 |---|---|
-| **`library.html`** | **968 components** across 103 categories, each with its own copyable source |
+| **`library.html`** | **1608 components** across 183 categories, each with its own copyable source |
 | **`database.html`** | **580 design languages** applied to a live 60-component interface |
 | **`extreme.html`** | 21 motion studies and 44 interactive components, hand-written canvas and WebGL |
 | **`scroll-lab.html`** | 9 scroll-driven animation techniques with their source alongside |
@@ -39,34 +39,27 @@ show it exactly the style you want. There is also *Copy category* and *Copy whol
 
 ### Coverage
 
-- **Motion — 200** across 17 categories: cards, charts, backgrounds, cursors, micro-interactions,
-  physics, morphing, 3D, feedback, navigation, data, ambient, plus buttons, loaders, reveals,
-  text and transitions
+- **App templates — 192** across 24 kinds, each a full-row, fully interactive app shell: Admin & CMS, Auth Pages, Booking & Events, Calendar, Chat, Creative Tools, Developer Tools, Editor, Files, Fitness & Habits, HR & People, Kanban, Learning, Mail, Media, Mobility & Delivery, Notes & Tasks, Personal Finance, Point of Sale, Real Estate, Restaurant, Smart Home, Storefront, Travel
+- **Dashboards — 208** across 26 business domains: AI Ops, Agency, Analytics, Commerce, Customer Support, DevOps, Education, Executive, Field Service, Fintech, Gaming, HR & Workforce, Health, Hospitality, Insurance, IoT & Energy, Legal Ops, Logistics, Marketing, Media & Publishing, Nonprofit, Projects, Real Estate, Retail Stores, SaaS, Sales CRM
+- **Page blocks — 80**: CTA, FAQ & Contact, Features, Footer, Hero, Navbar, Pricing, Showcase, Stats & Logos, Testimonials — full-row landing-page sections
+- **FX — 80**: Data Art, Generative, Glow & Light, Hover, Liquid & Glass, Particles, Shaders, Spatial, Text, View Transitions — WebGL shaders, particle systems, liquid glass, view transitions and more
+- **Modern UI — 160**: AI Chat, Auth, Bento, Command, Commerce, Data Grid, Date & Time, Drag & Drop, Empty, Forms, Glass, Media, Navigation, Notifications, Onboarding, Pricing, Settings, Social, Toolbars, Uploads
+- **Motion — 200** across 17 categories: 3D, Ambient, Backgrounds, Buttons, Cards, Charts, Cursors, Data, Feedback, Loaders, Micro, Morph, Navigation, Physics, Reveals, Text, Transitions
+- **Scroll — 96**: Horizontal, Parallax, Progress, Reveals, Snap, Sticky, Text, Timeline — each building its own scroll container, so it drops into any layout
 - **Finance & trading — 193**: order entry, depth and order books, price displays, trade charts,
   positions, blotters, market data, risk, portfolio, banking, payments, crypto
-- **Trading desk — 64** across 8 institutional desks: hedge fund (NAV, AUM, exposure, drawdown
-  vs high-water mark, LP capital accounts, fee accrual), execution (algo wheel, parent/child
-  fills, VWAP vs arrival, venue routing, slippage), research, macro, derivatives (chain, greeks,
-  vol smile, term structure, payoff), fixed income (yield solver, DV01, duration, spreads),
-  compliance (surveillance, restricted list, audit trail) and prime brokerage (margin, stock
-  loan, haircuts, settlement fails)
-- **Trading charts — 48** across 6 categories: candles (OHLC, hollow, Heikin-Ashi, point &
-  figure), depth, technical indicators computed live from a price series (RSI, MACD, Bollinger,
-  stochastic, ATR, Ichimoku), volume profile and VWAP, performance and drawdown, correlation
-- **Terminal — 151** across 18 categories: Bloomberg and Bloomberg Pro (DES, GP, PORT, ANR, ECO,
-  MSG, HP), terminal charts drawn in block glyphs, quant, ticker tape and wire, keyboard command
-  lines, feed and infrastructure monitors, plus CRT, TUI, DOS, System, Text, Mainframe, Retro8,
-  Hacker and Modern
-- **Scroll — 96** across 8 categories: reveals, parallax, sticky, progress, snap, horizontal,
-  text and timelines — each building its own scroll container, so it drops into any layout
-- **Modern — 80** across 10 categories: bento grids, glass, command palettes, AI chat,
-  onboarding, pricing, auth, settings, empty states, toolbars
-- **Interface — 112**: buttons, inputs, selection, menus, overlays, cards, data display,
-  charts, feedback, marketing, media, dashboard, experimental
+- **Trading desk — 64** across 8 institutional desks: Compliance, Derivatives, Execution, Fixed Income, Hedge Fund, Macro, Prime Brokerage, Research
+- **Trading charts — 48**: Candles, Correlation, Depth, Performance, Technical, Volume — indicators computed live from a price series
+- **Terminal — 151** across 18 categories, from Bloomberg and Bloomberg Pro to CRT, TUI, DOS and quant
+- **Interface — 112**: buttons, inputs, selection, menus, overlays, cards, data display, charts,
+  feedback, marketing, media, dashboard, experimental
 - **Music — 24**: players, visualisers and controls
 
+Every interactive component in the App, Dashboard and newer families passed a headless click
+check that clicks every control and fails any that does nothing.
+
 Every component is verified twice before it ships: `libcheck.py` proves it satisfies the
-contract, and `verify-runtime.html` mounts all 968 and confirms none throws or renders blank.
+contract, and `verify-runtime.html` mounts all 1608 and confirms none throws or renders blank.
 
 ## The design database
 
