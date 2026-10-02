@@ -20,9 +20,12 @@
 <div id="out">loading…</div>
 <div id="stageHost"></div>
 <script>
-/* WebGL canvases discard their drawing buffer after each frame is presented, so
-   reading their pixels afterwards returns nothing. Force preserveDrawingBuffer for
-   every WebGL context created on this page so what was drawn can be sampled. */
+/* Usage
+     verify-runtime.html                         every component in components.js
+     ?only=fxs-,dbs-funnel                       just ids starting with any prefix
+     ?src=components-src/1600-app-travel.json    a batch file instead of components.js
+     ?clicks=1                                   also click every control and report dead ones
+   tools/verify.mjs drives this page in headless Chrome from the command line. */
 (function () {
   /* An embedded or background pane reports document.hidden = true, and components that
      correctly pause in a hidden tab then never draw. Measure them as a visible page. */
@@ -30,6 +33,31 @@
     Object.defineProperty(Document.prototype, 'hidden', { configurable: true, get: function () { return false; } });
     Object.defineProperty(Document.prototype, 'visibilityState', { configurable: true, get: function () { return 'visible'; } });
   } catch (e) {}
+  /* WebGL canvases discard their drawing buffer after each frame is presented, so
+     reading their pixels afterwards returns nothing. Force preserveDrawingBuffer for
+     every WebGL context created on this page so what was drawn can be sampled. */
+  /* Opening a file picker is a real action that changes nothing in the DOM; record it
+     (and do not actually open a dialog). */
+  var fileClick = HTMLInputElement.prototype.click;
+  HTMLInputElement.prototype.click = function () {
+    if (this.type === 'file') { window.__picker = (window.__picker || 0) + 1; return; }
+    return fileClick.apply(this, arguments);
+  };
+  if (HTMLInputElement.prototype.showPicker) {
+    var sp = HTMLInputElement.prototype.showPicker;
+    HTMLInputElement.prototype.showPicker = function () {
+      if (this.type === 'file') { window.__picker = (window.__picker || 0) + 1; return; }
+      return sp.apply(this, arguments);
+    };
+  }
+  /* Remember which elements have click/pointer listeners, for canvases that animate
+     continuously — there a click's effect cannot be separated from the motion. */
+  var addL = EventTarget.prototype.addEventListener;
+  window.__wired = new WeakSet();
+  EventTarget.prototype.addEventListener = function (type, fn, o) {
+    if (/^(click|pointerdown|pointerup|mousedown|mouseup|touchstart)$/.test(type) && this instanceof Element) window.__wired.add(this);
+    return addL.call(this, type, fn, o);
+  };
   var orig = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function (type, attrs) {
     if (/webgl/.test(String(type))) {
@@ -40,64 +68,72 @@
   };
 })();
 </script>
-<script src="components.js"></script>
 <script>
-/* Mounts every component the way library.html does — same html/css/js strings, same
-   `new Function("root", js)(rootEl)` call — and records what actually happens:
-     * throws at mount
-     * throws LATER, inside a timer or animation frame (attributed via sourceURL)
-     * mounts cleanly but paints nothing
-     * canvases (2D and WebGL) that draw nothing
-   Batched so hundreds of live loops and WebGL contexts never run at once. */
 (function () {
-  var C = window.COMPONENTS || [];
-  /* ?only=fxs-,dbs-funnel verifies just the components whose id starts with any prefix */
-  var only = (/[?&]only=([^&]+)/.exec(location.search) || [])[1];
-  if (only) {
-    var pre = decodeURIComponent(only).split(',');
-    C = C.filter(function (c) { return pre.some(function (p) { return c.id.indexOf(p) === 0; }); });
-  }
+  var Q = new URLSearchParams(location.search);
+  var CLICKS = Q.get('clicks') === '1';
   var host = document.getElementById('stageHost');
   var out = document.getElementById('out');
+  var C = [];
+  var current = null;          /* id of the component being exercised, for attribution */
+  var findings = {};           /* id -> [navigation / form problems] */
+  function note(id, msg) { if (!id) return; (findings[id] = findings[id] || []); if (findings[id].indexOf(msg) < 0) findings[id].push(msg); }
 
-  /* Embedded/hidden panes freeze requestAnimationFrame entirely — document.hidden is
-     true and zero frames are delivered. Any component that paints only inside a rAF
-     loop then measures as an empty canvas, which reads as a failure when nothing is
-     actually wrong. setTimeout still runs in that state, so when no frame arrives
-     within 300ms we substitute a timer-driven rAF and report which mode was used. */
+  function load(next) {
+    var src = Q.get('src');
+    if (src) {
+      fetch(src, { cache: 'no-store' }).then(function (r) { return r.json(); })
+        .then(function (d) { C = Array.isArray(d) ? d : (d.components || []); next(); })
+        .catch(function (e) { out.textContent = 'could not load ' + src + ': ' + e; document.title = 'LOAD-ERROR'; });
+    } else {
+      var s = document.createElement('script');
+      s.src = 'components.js?' + Date.now();
+      s.onload = function () { C = window.COMPONENTS || []; next(); };
+      s.onerror = function () { out.textContent = 'could not load components.js'; document.title = 'LOAD-ERROR'; };
+      document.head.appendChild(s);
+    }
+  }
+
+  /* Nothing a component does may navigate this page away. A link or form that would
+     leave the page is prevented here (bubble phase, so component handlers run first)
+     and recorded when the component did not handle it itself. */
+  window.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href]');
+    if (!a || e.defaultPrevented) return;
+    var h = a.getAttribute('href') || '';
+    e.preventDefault();
+    if (h === '#' || h === '') note(current, 'link "' + label(a) + '" is href="#" with no handler — in a real page it jumps to the top and does nothing');
+  });
+  window.addEventListener('submit', function (e) {
+    if (e.defaultPrevented) return;
+    e.preventDefault();
+    note(current, 'a <form> submits without a handler — in a real page it reloads');
+  });
+
+  /* Embedded/hidden panes freeze requestAnimationFrame entirely — zero frames are
+     delivered. setTimeout still runs, so when no frame arrives within 300ms a timer-driven
+     rAF is substituted, and IntersectionObserver / ResizeObserver (which deliver in the
+     same rendering steps, so never fire either) are shimmed with the truth: every cell is
+     in the viewport by construction, at its real size. */
   var rafLive = false, rafMode = 'native';
   requestAnimationFrame(function () { rafLive = true; });
   function installShimIfFrozen(next) {
     setTimeout(function () {
       if (!rafLive) {
-        rafMode = 'shimmed (native rAF is frozen in this view)';
-        window.requestAnimationFrame = function (fn) {
-          return setTimeout(function () { fn(performance.now()); }, 16);
-        };
+        rafMode = 'shimmed (native rAF is frozen in this view) + IntersectionObserver/ResizeObserver shimmed';
+        window.requestAnimationFrame = function (fn) { return setTimeout(function () { fn(performance.now()); }, 16); };
         window.cancelAnimationFrame = function (id) { clearTimeout(id); };
-        /* IntersectionObserver and ResizeObserver deliver their callbacks in the same
-           rendering steps as rAF, so in a frozen view they never fire either — and a
-           component that sizes its canvas or starts its loop from one of them stays
-           at the default 300x150 and draws nothing. Every cell here is in the viewport
-           by construction, so reporting "intersecting" and the element's real size is
-           the truth, just delivered on a timer. */
         installObserverShims();
-        rafMode += ' + IntersectionObserver/ResizeObserver shimmed';
       }
       next();
     }, 300);
   }
-
   function installObserverShims() {
     function boxes(el) {
       var r = el.getBoundingClientRect(), cs = getComputedStyle(el);
-      var pw = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) +
-               parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
-      var ph = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) +
-               parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
-      var w = Math.max(0, r.width - pw), h = Math.max(0, r.height - ph);
-      var dpr = window.devicePixelRatio || 1;
-      return { r: r, w: w, h: h, dpr: dpr };
+      var pw = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+      var ph = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+      return { r: r, w: Math.max(0, r.width - pw), h: Math.max(0, r.height - ph), dpr: window.devicePixelRatio || 1 };
     }
     function Observer(kind, cb) {
       var self = this, targets = [];
@@ -105,17 +141,11 @@
         if (targets.indexOf(el) === -1) targets.push(el);
         setTimeout(function () {
           if (targets.indexOf(el) === -1 || !el.isConnected) return;
-          var b = boxes(el), entry;
-          if (kind === 'io') {
-            entry = { target: el, isIntersecting: true, intersectionRatio: 1, boundingClientRect: b.r,
-                      intersectionRect: b.r, rootBounds: null, time: performance.now() };
-          } else {
-            entry = { target: el,
-                      contentRect: { x: 0, y: 0, top: 0, left: 0, width: b.w, height: b.h, right: b.w, bottom: b.h },
-                      contentBoxSize: [{ inlineSize: b.w, blockSize: b.h }],
-                      borderBoxSize: [{ inlineSize: b.r.width, blockSize: b.r.height }],
-                      devicePixelContentBoxSize: [{ inlineSize: Math.round(b.w * b.dpr), blockSize: Math.round(b.h * b.dpr) }] };
-          }
+          var b = boxes(el), entry = kind === 'io'
+            ? { target: el, isIntersecting: true, intersectionRatio: 1, boundingClientRect: b.r, intersectionRect: b.r, rootBounds: null, time: performance.now() }
+            : { target: el, contentRect: { x: 0, y: 0, top: 0, left: 0, width: b.w, height: b.h, right: b.w, bottom: b.h },
+                contentBoxSize: [{ inlineSize: b.w, blockSize: b.h }], borderBoxSize: [{ inlineSize: b.r.width, blockSize: b.r.height }],
+                devicePixelContentBoxSize: [{ inlineSize: Math.round(b.w * b.dpr), blockSize: Math.round(b.h * b.dpr) }] };
           try { cb([entry], self); } catch (e) { setTimeout(function () { throw e; }); }
         }, 0);
       };
@@ -127,130 +157,323 @@
     window.ResizeObserver = function (cb) { Observer.call(this, 'ro', cb); };
   }
 
-  /* Errors raised after mount (in a timer, a frame, an observer) carry the
-     sourceURL of the component that threw. */
+  /* Errors raised after mount (in a timer, a frame, an observer) carry the sourceURL of
+     the component that threw. */
   var asyncErr = {};
   function noteAsync(msg, file) {
     var m = /components\/([a-z0-9-]+)\.js/.exec(file || '');
     if (m && !asyncErr[m[1]]) asyncErr[m[1]] = msg;
   }
   window.addEventListener('error', function (e) {
-    noteAsync(e.message, e.filename || (e.error && e.error.stack) || '');
+    /* new Function() prepends a 2-line header, so body line = reported line - 2 */
+    var where = /components\/[a-z0-9-]+\.js/.test(e.filename || '') && e.lineno ? ' (js line ' + (e.lineno - 2) + ')' : '';
+    if (!where && e.error && e.error.stack) {
+      var m = /components\/[a-z0-9-]+\.js:(\d+)/.exec(e.error.stack);
+      if (m) where = ' (js line ' + (+m[1] - 2) + ')';
+    }
+    noteAsync(e.message + where, e.filename || (e.error && e.error.stack) || '');
   });
-  window.addEventListener('unhandledrejection', function (e) {
-    var r = e.reason || {};
-    noteAsync(String(r.message || r), String(r.stack || ''));
-  });
+  window.addEventListener('unhandledrejection', function (e) { var r = e.reason || {}; noteAsync(String(r.message || r), String(r.stack || '')); });
 
-  var results = [];
-  var BATCH = 20, SETTLE = 900;
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   function canvasLit(cv) {
     try {
-      var w = cv.width, h = cv.height;
+      var w = cv.width, h = cv.height, g;
       if (!w || !h) return 0;
-      var src = cv, g = null;
-      if (cv.__webgl) {
-        var tmp = document.createElement('canvas');
-        tmp.width = w; tmp.height = h;
-        g = tmp.getContext('2d');
-        g.drawImage(cv, 0, 0);
-      } else {
-        g = cv.getContext('2d');
-        if (!g) return -1;
-      }
+      if (cv.__webgl) { var t = document.createElement('canvas'); t.width = w; t.height = h; g = t.getContext('2d'); g.drawImage(cv, 0, 0); }
+      else { g = cv.getContext('2d'); if (!g) return -1; }
       var d = g.getImageData(0, 0, w, h).data, lit = 0;
-      for (var p = 0; p < d.length; p += 4 * 37) {
-        if (d[p + 3] > 8 && (d[p] + d[p + 1] + d[p + 2]) > 6) lit++;
-      }
+      for (var p = 0; p < d.length; p += 4 * 37) if (d[p + 3] > 8 && (d[p] + d[p + 1] + d[p + 2]) > 6) lit++;
       return lit;
     } catch (e) { return -1; }
   }
 
   function measure(cell, c) {
     var r = { id: c.id, cat: c.cat, span: c.span || '' };
-    var kids = cell.querySelectorAll('*');
+    var kids = cell.querySelectorAll('*'), painted = 0;
     r.nodes = kids.length;
-    var painted = 0;
-    for (var i = 0; i < kids.length; i++) {
-      var b = kids[i].getBoundingClientRect();
-      if (b.width > 1 && b.height > 1) painted++;
-    }
+    for (var i = 0; i < kids.length; i++) { var b = kids[i].getBoundingClientRect(); if (b.width > 1 && b.height > 1) painted++; }
     r.painted = painted;
     var rootEl = cell.querySelector('.' + c.id) || cell.firstElementChild;
     if (rootEl) {
       var rb = rootEl.getBoundingClientRect();
       r.w = Math.round(rb.width); r.h = Math.round(rb.height);
       /* a component wider than the cell it was given is overflowing its layout */
-      r.overflowX = rootEl.scrollWidth > rootEl.clientWidth + 2 &&
-                    getComputedStyle(rootEl).overflowX === 'visible';
+      r.overflowX = rootEl.scrollWidth > rootEl.clientWidth + 2 && getComputedStyle(rootEl).overflowX === 'visible';
     }
     var cvs = cell.querySelectorAll('canvas');
     if (cvs.length) {
       r.canvases = cvs.length;
       r.webgl = Array.prototype.some.call(cvs, function (x) { return x.__webgl; });
       var best = 0, any = false;
-      Array.prototype.forEach.call(cvs, function (cv) {
-        var l = canvasLit(cv);
-        if (l >= 0) { any = true; best = Math.max(best, l); }
-      });
+      Array.prototype.forEach.call(cvs, function (cv) { var l = canvasLit(cv); if (l >= 0) { any = true; best = Math.max(best, l); } });
       r.canvasLit = any ? best : -1;
     }
     return r;
   }
 
-  function runBatch(start, done) {
+  /* ---------------- click sweep ----------------
+     Every control is clicked once (pointer + mouse + click events at its centre). It is
+     "alive" if, within 250ms, it changes something that was not already changing on its
+     own — a DOM mutation on a node or of a kind absent from a quiet baseline window — or
+     moves focus, scrolls something, or changes a canvas that is otherwise still. */
+  var CONTROL = 'button, [role=button], [role=tab], [role=menuitem], [role=menuitemradio], [role=menuitemcheckbox],' +
+                '[role=switch], [role=checkbox], [role=radio], [role=option], [role=treeitem], [role=link], a[href],' +
+                'summary, input[type=checkbox], input[type=radio], input[type=button], input[type=submit]';
+  function label(el) {
+    var t = el.getAttribute('aria-label') || el.getAttribute('title') || (el.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!t && el.value) t = el.value;
+    return (t || ('<' + el.tagName.toLowerCase() + (el.className && el.className.baseVal === undefined ? ' .' + String(el.className).split(' ')[0] : '') + '>')).slice(0, 48);
+  }
+  function visible(el) {
+    var b = el.getBoundingClientRect();
+    if (b.width < 2 || b.height < 2) return false;
+    var cs = getComputedStyle(el);
+    return cs.visibility !== 'hidden' && cs.display !== 'none' && parseFloat(cs.opacity) > 0.05;
+  }
+  /* Fields operated by typing, dragging or choosing — not by a single click — are not
+     swept: a click on a slider or a <select> legitimately changes nothing. */
+  var NOT_CLICK = 'select, textarea, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]),' +
+                  '[role=slider], [role=spinbutton], [role=textbox], [role=combobox], [contenteditable=""], [contenteditable=true]';
+  function controls(root) {
+    var list = Array.prototype.slice.call(root.querySelectorAll(CONTROL)).filter(function (el) { return !el.matches(NOT_CLICK); });
+    /* plus anything styled as clickable that is not inside or around a control. cursor is
+       inherited, so only the OUTERMOST element of a pointer region counts — otherwise every
+       digit inside a clickable card would be swept as a separate button. */
+    Array.prototype.forEach.call(root.querySelectorAll('*'), function (el) {
+      if (list.indexOf(el) > -1 || el.matches(NOT_CLICK) || el.closest(CONTROL) || el.querySelector(CONTROL)) return;
+      if (getComputedStyle(el).cursor !== 'pointer') return;
+      var p = el.parentElement;
+      if (p && p !== root.parentElement && root.contains(p) && getComputedStyle(p).cursor === 'pointer') return;
+      if (el.children.length < 8) list.push(el);
+    });
+    return list;
+  }
+  /* Property state a click can change without any DOM mutation: checkbox/radio checked,
+     field values, <details> open. */
+  function stateSig(root) {
+    var s = '';
+    Array.prototype.forEach.call(root.querySelectorAll('input, select, textarea, details'), function (el) {
+      s += el.tagName === 'DETAILS' ? (el.open ? 'o' : 'c') :
+           (el.type === 'checkbox' || el.type === 'radio') ? (el.checked ? '1' : '0') :
+           el.tagName === 'SELECT' ? el.selectedIndex : String(el.value).length + ':' + String(el.value).slice(0, 12);
+      s += '|';
+    });
+    return s;
+  }
+  function scrollSig(root) {
+    var s = root.scrollTop + root.scrollLeft;
+    Array.prototype.forEach.call(root.querySelectorAll('*'), function (el) { if (el.scrollTop || el.scrollLeft) s += el.scrollTop * 3 + el.scrollLeft * 7; });
+    return s;
+  }
+  function canvasSig(root) {
+    var s = 0;
+    Array.prototype.forEach.call(root.querySelectorAll('canvas'), function (cv) {
+      try {
+        var g = cv.__webgl ? null : cv.getContext('2d'), d;
+        if (cv.__webgl) { var t = document.createElement('canvas'); t.width = cv.width; t.height = cv.height; g = t.getContext('2d'); g.drawImage(cv, 0, 0); }
+        if (!g || !cv.width || !cv.height) return;
+        d = g.getImageData(0, 0, cv.width, cv.height).data;
+        for (var p = 0; p < d.length; p += 4 * 97) s = (s * 31 + d[p] + d[p + 1] * 3 + d[p + 2] * 7) % 1000000007;
+      } catch (e) {}
+    });
+    return s;
+  }
+  function watch(root) {
+    var recs = [], mo = new MutationObserver(function (r) { recs.push.apply(recs, r); });
+    mo.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
+    return function stop() { recs.push.apply(recs, mo.takeRecords()); mo.disconnect(); return recs; };
+  }
+  /* Click the way a pointer does: on whatever is topmost at the control's centre. A row
+     whose visible face sits above it is clicked through the face, as a user would. A
+     control covered by another part of the component cannot be clicked by a user either,
+     so it is skipped rather than counted. */
+  function fire(el, root) {
+    var b = el.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2;
+    var hit = document.elementFromPoint(x, y);
+    if (!hit || !(hit === el || el.contains(hit))) {
+      if (hit && root.contains(hit)) return false;     /* covered inside the component */
+      hit = el;
+    }
+    var o = { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, button: 0, pointerId: 1, pointerType: 'mouse', isPrimary: true };
+    hit.dispatchEvent(new PointerEvent('pointerdown', Object.assign({ buttons: 1 }, o)));
+    hit.dispatchEvent(new MouseEvent('mousedown', Object.assign({ buttons: 1, detail: 1 }, o)));
+    var f = hit.closest('button, a, input, select, textarea, [tabindex]');
+    if (f && f.focus) try { f.focus({ preventScroll: true }); } catch (e) {}
+    hit.dispatchEvent(new PointerEvent('pointerup', Object.assign({ buttons: 0 }, o)));
+    hit.dispatchEvent(new MouseEvent('mouseup', Object.assign({ buttons: 0, detail: 1 }, o)));
+    hit.dispatchEvent(new MouseEvent('click', Object.assign({ buttons: 0, detail: 1 }, o)));
+    return true;
+  }
+  /* One click, judged against a quiet baseline of what changes on its own. */
+  async function probe(el, root, base) {
+    /* A control scrolled out of sight inside the component's own scroller is brought into
+       view first, as a user would — before the scroll baseline is taken, so the scroll
+       itself never counts as the control doing something. */
+    try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+    await sleep(30);
+    var focus0 = document.activeElement, s0 = scrollSig(root), c0 = base.canvasNoisy ? 0 : canvasSig(root), st0 = stateSig(root);
+    var href = el.closest('a[href]') && el.closest('a[href]').getAttribute('href');
+    var stopC = watch(root), fired = false, picker0 = window.__picker || 0;
+    try { fired = fire(el, root); } catch (e) {}
+    if (!fired) { stopC(); return null; }
+    await sleep(250);
+    var recs = stopC();
+    var novel = recs.some(function (r) { return !base.targets.has(r.target) || !base.kinds.has(r.type + ':' + (r.attributeName || '')); });
+    var ae = document.activeElement;
+    return novel || (ae !== focus0 && root.contains(ae) && ae !== el && !el.contains(ae)) ||
+           scrollSig(root) !== s0 || stateSig(root) !== st0 || (!base.canvasNoisy && canvasSig(root) !== c0) ||
+           !!(href && href !== '#') || (window.__picker || 0) > picker0 ||
+           (base.canvasNoisy && (el.tagName === 'CANVAS' || el.querySelector('canvas')) && wiredUpTo(el, root));
+  }
+  function wiredUpTo(el, root) {
+    for (var n = el; n; n = n.parentElement) { if (window.__wired.has(n)) return true; if (n === root) break; }
+    return false;
+  }
+  async function baseline(root) {
+    var stop = watch(root), cv0 = canvasSig(root);
+    await sleep(300);
+    var recs = stop(), b = { targets: new Set(), kinds: new Set(), canvasNoisy: canvasSig(root) !== cv0, n: recs.length };
+    recs.forEach(function (r) { b.targets.add(r.target); b.kinds.add(r.type + ':' + (r.attributeName || '')); });
+    return b;
+  }
+  /* Clicking the option that is already chosen — the selected tab, the checked radio
+     segment, the current view — legitimately changes nothing, so it is not swept.
+     Toggle buttons (aria-pressed) and checkboxes ARE swept: clicking them switches off. */
+  function alreadyActive(el) {
+    if (el.getAttribute('aria-selected') === 'true') return true;
+    var cur = el.getAttribute('aria-current');
+    if (cur && cur !== 'false') return true;
+    var role = el.getAttribute('role');
+    if ((role === 'radio' || role === 'menuitemradio' || role === 'tab' || role === 'option') &&
+        el.getAttribute('aria-checked') === 'true') return true;
+    if (el.matches('input[type=radio]') && el.checked) return true;
+    return false;
+  }
+  /* A handle you drag (a light source, a splitter) is operated by dragging, not clicking */
+  function dragHandle(el) {
+    var n = (el.getAttribute('aria-label') || el.getAttribute('title') || '') + ' ' + (el.getAttribute('aria-roledescription') || '');
+    return /\bdrag(gable|ging)?\b/i.test(n) || el.getAttribute('draggable') === 'true';
+  }
+  function clickable(el, root) {
+    if (dragHandle(el)) return false;
+    /* a label that wraps or controls a slider/field is part of that field's hit area */
+    if (el.tagName === 'LABEL' && ((el.control && el.control.matches(NOT_CLICK)) || el.querySelector(NOT_CLICK))) return false;
+    return el.isConnected && root.contains(el) && visible(el) && !el.disabled &&
+           el.getAttribute('aria-disabled') !== 'true' && !el.closest('[inert]') && !alreadyActive(el);
+  }
+
+  async function sweep(c, root) {
+    var base = await baseline(root);
+    var initial = controls(root), queue = initial.slice(), seen = [], tested = 0, dead = [], cap = 45, skipped = 0;
+    for (var i = 0; i < queue.length; i++) {
+      var el = queue[i];
+      if (seen.indexOf(el) > -1) continue;
+      seen.push(el);
+      if (!clickable(el, root)) continue;
+      if (tested >= cap) { skipped++; continue; }
+      var alive = await probe(el, root, base);
+      if (alive === null) continue;              /* covered — not clickable by a user */
+      tested++;
+      if (!alive) dead.push({ label: label(el), idx: initial.indexOf(el) });
+      /* newly revealed controls (an opened menu, a new view) join the end of the queue */
+      controls(root).forEach(function (n) { if (queue.indexOf(n) === -1) queue.push(n); });
+    }
+    return { tested: tested, dead: dead, skipped: skipped, noisy: base.n > 0 };
+  }
+
+  function mountOne(c) {
+    var cell = document.createElement('div');
+    cell.className = c.span === 'full' ? 'cell full' : 'cell';
+    host.appendChild(cell);           /* attach BEFORE mount — detached nodes have no layout */
+    var rec = { c: c, cell: cell, err: null };
+    current = c.id;
+    try {
+      cell.innerHTML = c.html;
+      if ((c.js || '').trim()) {
+        var rootEl = cell.querySelector('.' + c.id) || cell.firstElementChild;
+        if (!rootEl) throw new Error('no root element matching .' + c.id);
+        new Function('root', c.js + '\n//# sourceURL=components/' + c.id + '.js')(rootEl);
+      }
+    } catch (e) { rec.err = (e && e.message) || String(e); }
+    rec.root = cell.querySelector('.' + c.id) || cell.firstElementChild;
+    return rec;
+  }
+
+  /* A control that looked dead during the sweep may only have been dead in the state
+     earlier clicks left behind (Delete after every message was archived). Re-test it
+     alone on a freshly mounted copy; only one that is still dead there is reported. */
+  async function recheck(c, d) {
+    if (d.idx < 0) return 'unconfirmed';         /* only exists in a state earlier clicks made */
+    var rec = mountOne(c);
+    await sleep(500);
+    var still = true;
+    try {
+      var el = controls(rec.root)[d.idx];
+      if (el && clickable(el, rec.root)) {
+        var base = await baseline(rec.root);
+        var alive = await probe(el, rec.root, base);
+        still = alive === false;
+      }
+    } catch (e) {}
+    rec.cell.remove();
+    return still;
+  }
+
+  var results = [];
+  var BATCH = CLICKS ? 1 : 20, SETTLE = CLICKS ? 700 : 900;
+
+  async function runBatch(start) {
     var slice = C.slice(start, start + BATCH);
     var style = document.createElement('style');
     style.textContent = slice.map(function (c) { return c.css || ''; }).join('\n');
     document.head.appendChild(style);
-    var cells = [];
-    slice.forEach(function (c) {
-      var cell = document.createElement('div');
-      cell.className = c.span === 'full' ? 'cell full' : 'cell';
-      host.appendChild(cell);           /* attach BEFORE mount — detached nodes have no layout */
-      var rec = { c: c, cell: cell, err: null };
-      try {
-        cell.innerHTML = c.html;
-        if ((c.js || '').trim()) {
-          var rootEl = cell.querySelector('.' + c.id) || cell.firstElementChild;
-          if (!rootEl) throw new Error('no root element matching .' + c.id);
-          new Function('root', c.js + '\n//# sourceURL=components/' + c.id + '.js')(rootEl);
-        }
-      } catch (e) {
-        rec.err = (e && e.message) || String(e);
+    var cells = slice.map(mountOne);
+    await sleep(SETTLE);
+    for (var i = 0; i < cells.length; i++) {
+      var rec = cells[i];
+      var r = rec.err ? { id: rec.c.id, cat: rec.c.cat, error: rec.err } : measure(rec.cell, rec.c);
+      if (CLICKS && !rec.err) {
+        current = rec.c.id;
+        /* on top and hit-testable (still near-transparent) so elementFromPoint finds it */
+        host.style.pointerEvents = 'auto'; host.style.zIndex = '9999';
+        try {
+          r.clicks = await sweep(rec.c, rec.root);
+          rec.cell.remove();
+          var confirmed = [], unconfirmed = [];
+          for (var k = 0; k < r.clicks.dead.length; k++) {
+            var v = await recheck(rec.c, r.clicks.dead[k]);
+            if (v === 'unconfirmed') unconfirmed.push(r.clicks.dead[k].label);
+            else if (v) confirmed.push(r.clicks.dead[k].label);
+          }
+          r.clicks.dead = confirmed;
+          r.clicks.unconfirmed = unconfirmed;
+        } catch (e) { r.clicks = { error: String(e), dead: [] }; }
+        host.style.pointerEvents = 'none'; host.style.zIndex = '-1';
       }
-      cells.push(rec);
-    });
-    setTimeout(function () {
-      cells.forEach(function (rec) {
-        var r = rec.err
-          ? { id: rec.c.id, cat: rec.c.cat, error: rec.err }
-          : measure(rec.cell, rec.c);
-        results.push(r);
-        rec.cell.remove();
-      });
-      style.remove();
-      out.textContent = 'verified ' + results.length + ' / ' + C.length + ' …';
-      if (start + BATCH < C.length) setTimeout(function () { runBatch(start + BATCH, done); }, 60);
-      else setTimeout(done, 400);   /* let any last async errors land */
-    }, SETTLE);
+      results.push(r);
+      if (rec.cell.isConnected) rec.cell.remove();
+    }
+    style.remove();
+    out.textContent = 'verified ' + results.length + ' / ' + C.length + ' …';
   }
 
-  installShimIfFrozen(function () { runBatch(0, function () {
-    results.forEach(function (r) { if (!r.error && asyncErr[r.id]) r.asyncError = asyncErr[r.id]; });
+  function finish() {
+    results.forEach(function (r) {
+      if (!r.error && asyncErr[r.id]) r.asyncError = asyncErr[r.id];
+      if (findings[r.id]) r.findings = findings[r.id];
+    });
     var errs  = results.filter(function (r) { return r.error; });
     var aerrs = results.filter(function (r) { return r.asyncError; });
     var blank = results.filter(function (r) { return !r.error && r.painted === 0; });
     var dark  = results.filter(function (r) { return !r.error && r.canvasLit === 0; });
     var over  = results.filter(function (r) { return r.overflowX; });
+    var deadC = results.filter(function (r) { return r.clicks && r.clicks.dead && r.clicks.dead.length; });
+    var find  = results.filter(function (r) { return r.findings; });
     var sum = {
-      total: results.length,
-      errors: errs.length,
-      asyncErrors: aerrs.length,
-      blank: blank.length,
-      darkCanvas: dark.length,
-      overflowing: over.length,
+      total: results.length, errors: errs.length, asyncErrors: aerrs.length, blank: blank.length,
+      darkCanvas: dark.length, overflowing: over.length,
       webglComponents: results.filter(function (r) { return r.webgl; }).length,
       fullSpan: results.filter(function (r) { return r.span === 'full'; }).length,
       rafMode: rafMode,
@@ -260,22 +483,46 @@
       darkList: dark.map(function (r) { return r.id; }),
       overflowList: over.map(function (r) { return r.id + ' (' + r.w + 'px)'; })
     };
+    if (CLICKS) {
+      sum.controlsTested = results.reduce(function (n, r) { return n + ((r.clicks && r.clicks.tested) || 0); }, 0);
+      sum.deadControls = deadC.reduce(function (n, r) { return n + r.clicks.dead.length; }, 0);
+      sum.deadList = []; sum.unconfirmedList = [];
+      deadC.forEach(function (r) { r.clicks.dead.forEach(function (d) { sum.deadList.push(r.id + ' :: "' + d + '"'); }); });
+      results.forEach(function (r) { ((r.clicks && r.clicks.unconfirmed) || []).forEach(function (d) { sum.unconfirmedList.push(r.id + ' :: "' + d + '"'); }); });
+    }
+    sum.linkAndFormProblems = find.length;
+    sum.findingList = [];
+    find.forEach(function (r) { r.findings.forEach(function (f) { sum.findingList.push(r.id + ' :: ' + f); }); });
     window.__VERIFY__ = { summary: sum, results: results };
-    function line(n, label, cls) { return '<span class="' + (n ? cls : 'ok') + '">' + label + ': ' + n + '</span>\n'; }
-    function list(t, a) { return a.length ? t + '\n  ' + a.join('\n  ') + '\n\n' : ''; }
+    function line(n, l, cls) { return '<span class="' + (n ? cls : 'ok') + '">' + l + ': ' + n + '</span>\n'; }
+    function list(t, a) { return a && a.length ? t + '\n  ' + a.join('\n  ') + '\n\n' : ''; }
     out.innerHTML =
-      '<b>' + sum.total + '</b> components mounted (' + sum.fullSpan + ' full-span, ' +
-      sum.webglComponents + ' WebGL)\nanimation clock: ' + rafMode + '\n' +
-      line(sum.errors, 'errors at mount', 'bad') +
-      line(sum.asyncErrors, 'errors after mount', 'bad') +
-      line(sum.blank, 'blank (nothing painted)', 'warn') +
-      line(sum.darkCanvas, 'canvas drawing nothing', 'warn') +
-      line(sum.overflowing, 'overflowing their width', 'warn') + '\n' +
+      '<b>' + sum.total + '</b> components mounted (' + sum.fullSpan + ' full-span, ' + sum.webglComponents + ' WebGL)\n' +
+      'animation clock: ' + rafMode + '\n' +
+      line(sum.errors, 'errors at mount', 'bad') + line(sum.asyncErrors, 'errors after mount', 'bad') +
+      line(sum.blank, 'blank (nothing painted)', 'warn') + line(sum.darkCanvas, 'canvas drawing nothing', 'warn') +
+      line(sum.overflowing, 'overflowing their width', 'warn') +
+      (CLICKS ? line(sum.deadControls, 'dead controls (of ' + sum.controlsTested + ' clicked)', 'bad') : '') +
+      line(sum.linkAndFormProblems, 'components with dead links or reloading forms', 'bad') + '\n' +
       list('ERRORS AT MOUNT', sum.errorList) + list('ERRORS AFTER MOUNT', sum.asyncErrorList) +
-      list('BLANK', sum.blankList) + list('DARK CANVAS', sum.darkList) +
-      list('OVERFLOWING', sum.overflowList);
-    document.title = 'DONE ' + sum.errors + 'e/' + sum.asyncErrors + 'a/' + sum.blank + 'b';
-  }); });
+      list('DEAD CONTROLS', sum.deadList) + list('UNCONFIRMED (dead only after other clicks)', sum.unconfirmedList) +
+      list('LINKS AND FORMS', sum.findingList) +
+      list('BLANK', sum.blankList) + list('DARK CANVAS', sum.darkList) + list('OVERFLOWING', sum.overflowList);
+    document.title = 'DONE ' + sum.errors + 'e/' + sum.asyncErrors + 'a/' + sum.blank + 'b' + (CLICKS ? '/' + sum.deadControls + 'd' : '');
+  }
+
+  load(function () {
+    var only = Q.get('only');
+    if (only) {
+      var pre = only.split(',');
+      C = C.filter(function (c) { return pre.some(function (p) { return c.id.indexOf(p) === 0; }); });
+    }
+    installShimIfFrozen(async function () {
+      for (var s = 0; s < C.length; s += BATCH) { await runBatch(s); await sleep(CLICKS ? 30 : 60); }
+      await sleep(400);   /* let any last async errors land */
+      finish();
+    });
+  });
 })();
 </script>
 </body>

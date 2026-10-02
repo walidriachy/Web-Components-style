@@ -134,6 +134,25 @@ window/document listeners removed; no `position: fixed`, viewport units or top-l
 must respond to their container; and no string shaped like a real API key, since secret
 scanners would block anyone who copies the component.
 
+### Runtime and click checking
+
+`tools/verify.mjs` runs the runtime checks in headless Chrome from the command line — no
+dependencies beyond Node 22+ and an installed Chrome:
+
+```sh
+node tools/verify.mjs                                   # every component in components.js
+node tools/verify.mjs --only dba-,apm-                  # ids starting with these prefixes
+node tools/verify.mjs --src components-src/1210-app-mail.json --clicks
+```
+
+`--clicks` clicks every button, link, tab, menu item, option, switch, row and anything styled
+as clickable, on a freshly mounted copy, and fails any control that changes nothing. It clicks
+what a real pointer would hit, scrolls hidden controls into view first, re-tests suspected
+dead controls on a fresh mount, and does not count options that are already selected, fields
+operated by dragging or typing, drag handles, or file pickers (opening one counts as an
+action). It also reports `href="#"` placeholder links and forms that would reload the page.
+It exits non-zero on any error, blank render, dead control or placeholder link.
+
 Open `verify-runtime.html` to mount every component and report errors thrown at mount and
 **after** mount (inside timers and animation frames, attributed to the component that threw),
 blank renders, 2D and WebGL canvases that draw nothing, and components overflowing their

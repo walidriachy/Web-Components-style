@@ -107,6 +107,31 @@
       "Component: " + c.name + " (" + c.cat + ")\nTechnique: " + c.note + "\n\n" + bundle(c) + "\n";
   }
 
+  function say(msg) {
+    toast.textContent = msg;
+    toast.classList.add("on");
+    clearTimeout(say.t);
+    say.t = setTimeout(function () { toast.classList.remove("on"); }, 1800);
+  }
+
+  /* Components are real page sections, so their links point at real-looking paths
+     ("/pricing") and their forms submit. Inside a preview that would navigate the library
+     away. Both are caught after the component's own handlers have run (bubble phase), and
+     only when the component did not handle them itself. */
+  out.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest(".stage a[href]");
+    if (!a || e.defaultPrevented) return;
+    var h = a.getAttribute("href") || "";
+    if (h.charAt(0) === "#" && h.length > 1 && a.closest(".stage").querySelector(h.replace(/[^\w#-]/g, ""))) return;
+    e.preventDefault();
+    say(h && h !== "#" ? "Link \u2192 " + h + " (navigation is off in previews)" : "Placeholder link");
+  });
+  out.addEventListener("submit", function (e) {
+    if (!e.target.closest(".stage") || e.defaultPrevented) return;
+    e.preventDefault();
+    say("Form submitted (previews don\u2019t send anything)");
+  });
+
   function copy(text, label) {
     function done(ok) {
       toast.textContent = ok ? (label || "Copied") : "Copy blocked — select the code instead";
